@@ -409,6 +409,11 @@
   }
 
   #screen-gallery { overflow-y: auto; padding-top: 80px; }
+  
+  @media (max-width: 768px) {
+    #screen-gallery { padding-top: 200px; }
+  }
+  
   #screen-gallery .gallery-title {
     font-family: 'Cinzel', serif;
     font-size: 22px;
@@ -439,20 +444,21 @@
   /* Mobile adjustments */
   @media (max-width: 768px) {
     .gallery-actions {
-      top: 60px;
-      gap: 6px;
-      padding: 8px 12px;
+      top: 135px;
+      gap: 5px;
+      padding: 6px 10px;
       font-size: 10px;
     }
     
     .action-btn {
-      padding: 6px 12px;
+      padding: 5px 10px;
       font-size: 9px;
+      white-space: nowrap;
     }
     
     #selection-count {
-      font-size: 10px;
-      padding: 0 6px;
+      font-size: 9px;
+      padding: 0 4px;
     }
   }
 
