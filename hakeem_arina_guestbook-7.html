@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Hakeem & Arina — Video Guestbook</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Cinzel:wght@400;600&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cream: #fdf8f0;
+    --warm-white: #fffef9;
+    --rose: #c9a0a0;
+    --rose-light: #e8d0d0;
+    --rose-dark: #9e6b6b;
+    --sage: #a8b5a0;
+    --gold: #c4a882;
+    --gold-light: #e8d9c4;
+    --brown: #7a5c4a;
+    --text: #3d2b1f;
+    --text-light: #7a6a60;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    background: var(--cream);
+    font-family: 'Cormorant Garamond', serif;
+    color: var(--text);
+    touch-action: manipulation;
+  }
+
+  /* ── FLORAL SVG DECORATIONS ── */
+  .floral-corner {
+    position: fixed;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.55;
+  }
+  .floral-tl { top: -10px; left: -10px; transform: rotate(0deg); }
+  .floral-tr { top: -10px; right: -10px; transform: rotate(90deg); }
+  .floral-bl { bottom: -10px; left: -10px; transform: rotate(270deg); }
+  .floral-br { bottom: -10px; right: -10px; transform: rotate(180deg); }
+
+  /* ── SCREENS ── */
+  .screen {
+    position: fixed; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 40px 30px;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.8s ease;
+    z-index: 1;
+  }
+  .screen.active { opacity: 1; pointer-events: all; }
+
+  /* ── DIVIDER ── */
+  .divider {
+    display: flex; align-items: center; gap: 12px;
+    width: 100%; max-width: 320px;
+    margin: 16px 0;
+  }
+  .divider-line { flex: 1; height: 1px; background: var(--gold); opacity: 0.6; }
+  .divider-diamond {
+    width: 6px; height: 6px;
+    background: var(--gold);
+    transform: rotate(45deg);
+    opacity: 0.8;
+  }
+
+  /* ── WELCOME SCREEN ── */
+  #screen-welcome .couple-names {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(28px, 7vw, 48px);
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    color: var(--brown);
+    text-align: center;
+    line-height: 1.3;
+    margin-bottom: 4px;
+  }
+  #screen-welcome .ampersand {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: clamp(22px, 5vw, 36px);
+    color: var(--rose-dark);
+    display: block;
+  }
+  #screen-welcome .tagline {
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    font-size: clamp(14px, 3.5vw, 18px);
+    color: var(--text-light);
+    text-align: center;
+    margin-top: 4px;
+    letter-spacing: 0.04em;
+  }
+  #screen-welcome .instruction {
+    font-size: clamp(13px, 3vw, 16px);
+    color: var(--text-light);
+    text-align: center;
+    line-height: 1.7;
+    max-width: 300px;
+    margin-top: 8px;
+  }
+  .btn-primary {
+    margin-top: 24px;
+    padding: 16px 48px;
+    background: linear-gradient(135deg, var(--rose-dark), var(--brown));
+    color: white;
+    border: none;
+    border-radius: 60px;
+    font-family: 'Cinzel', serif;
+    font-size: clamp(13px, 3vw, 16px);
+    letter-spacing: 0.18em;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(158, 107, 107, 0.35);
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(158,107,107,0.45); }
+  .btn-primary:active { transform: translateY(0); }
+
+  .btn-secondary {
+    margin-top: 12px;
+    padding: 12px 36px;
+    background: transparent;
+    color: var(--text-light);
+    border: 1px solid var(--gold);
+    border-radius: 60px;
+    font-family: 'Cinzel', serif;
+    font-size: clamp(11px, 2.5vw, 13px);
+    letter-spacing: 0.15em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+  }
+  .btn-secondary:hover { background: var(--gold-light); color: var(--brown); }
+
+  /* ── NAME SCREEN ── */
+  #screen-name .title {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(18px, 4.5vw, 28px);
+    color: var(--brown);
+    text-align: center;
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+  }
+  #screen-name .subtitle {
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    font-size: clamp(13px, 3vw, 16px);
+    color: var(--text-light);
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .input-wrap {
+    width: 100%; max-width: 320px;
+    position: relative;
+    margin-bottom: 20px;
+  }
+  .input-wrap input {
+    width: 100%;
+    padding: 14px 20px;
+    background: var(--warm-white);
+    border: 1px solid var(--gold);
+    border-radius: 50px;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    color: var(--text);
+    text-align: center;
+    outline: none;
+    transition: border-color 0.3s;
+  }
+  .input-wrap input:focus { border-color: var(--rose-dark); }
+  .input-wrap input::placeholder { color: var(--text-light); font-style: italic; }
+
+  /* ── RECORD SCREEN ── */
+  #screen-record { padding: 20px; }
+  #screen-record .guest-greeting {
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    font-size: clamp(15px, 3.5vw, 20px);
+    color: var(--text-light);
+    text-align: center;
+    margin-bottom: 4px;
+  }
+  #screen-record .record-title {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(16px, 4vw, 24px);
+    color: var(--brown);
+    text-align: center;
+    letter-spacing: 0.1em;
+    margin-bottom: 16px;
+  }
+
+  .video-frame {
+    width: 100%; max-width: 380px;
+    aspect-ratio: 4/3;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 3px solid var(--gold-light);
+    box-shadow: 0 8px 32px rgba(122,92,74,0.2);
+    background: #1a1008;
+    position: relative;
+  }
+  .video-frame video {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    transform: scaleX(-1);
+  }
+  .video-frame .rec-indicator {
+    position: absolute; top: 12px; left: 12px;
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(0,0,0,0.6);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    color: white;
+    letter-spacing: 0.1em;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .video-frame .rec-indicator.show { opacity: 1; }
+  .rec-dot {
+    width: 8px; height: 8px;
+    background: #ff3b30;
+    border-radius: 50%;
+    animation: blink 1s infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+  .timer-ring {
+    position: relative;
+    width: 80px; height: 80px;
+    margin: 16px auto 8px;
+  }
+  .timer-ring svg { position: absolute; top:0; left:0; transform: rotate(-90deg); }
+  .timer-ring .timer-text {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Cinzel', serif;
+    font-size: 22px;
+    color: var(--brown);
+    font-weight: 600;
+  }
+  .timer-hint {
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    font-size: 12px;
+    color: var(--text-light);
+    text-align: center;
+    margin-bottom: 16px;
+  }
+
+  .record-controls {
+    display: flex; flex-direction: column;
+    align-items: center; gap: 10px;
+    width: 100%;
+  }
+  .btn-record {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    border: 4px solid var(--rose-dark);
+    background: white;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(158,107,107,0.3);
+  }
+  .btn-record .inner {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: var(--rose-dark);
+    transition: all 0.3s ease;
+  }
+  .btn-record.recording .inner {
+    border-radius: 8px;
+    width: 32px; height: 32px;
+    background: #ff3b30;
+  }
+  .btn-record:hover { transform: scale(1.05); }
+
+  .record-label {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--text-light);
+    text-transform: uppercase;
+  }
+
+  /* ── REVIEW SCREEN ── */
+  #screen-review .review-title {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(16px, 4vw, 22px);
+    color: var(--brown);
+    text-align: center;
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+  }
+  #screen-review .review-sub {
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    color: var(--text-light);
+    font-size: 14px;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .playback-wrap {
+    width: 100%; max-width: 340px;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 2px solid var(--gold-light);
+    box-shadow: 0 8px 24px rgba(122,92,74,0.15);
+    position: relative;
+  }
+  #playback-video {
+    width: 100%;
+    display: block;
+  }
+  .review-btns { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; justify-content: center; }
+
+  /* ── SAVED SCREEN ── */
+  #screen-saved .saved-icon {
+    font-size: 56px;
+    margin-bottom: 12px;
+    animation: pop 0.5s cubic-bezier(0.175,0.885,0.32,1.275);
+  }
+  @keyframes pop { 0%{transform:scale(0)} 100%{transform:scale(1)} }
+  #screen-saved .saved-title {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(20px, 5vw, 30px);
+    color: var(--brown);
+    text-align: center;
+    letter-spacing: 0.1em;
+  }
+  #screen-saved .saved-msg {
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    color: var(--text-light);
+    font-size: clamp(14px, 3.2vw, 17px);
+    text-align: center;
+    max-width: 280px;
+    line-height: 1.7;
+    margin-top: 8px;
+  }
+
+  /* ── GALLERY SCREEN ── */
+  #screen-gallery { overflow-y: auto; padding-top: 80px; }
+  #screen-gallery .gallery-title {
+    font-family: 'Cinzel', serif;
+    font-size: 22px;
+    color: var(--brown);
+    text-align: center;
+    letter-spacing: 0.1em;
+    margin-bottom: 20px;
+  }
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    width: 100%; max-width: 500px;
+    padding-bottom: 100px;
+  }
+  .gallery-item {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid var(--gold-light);
+    background: #1a1008;
+    position: relative;
+    aspect-ratio: 4/3;
+    cursor: pointer;
+  }
+  .gallery-item video {
+    width: 100%; height: 100%;
+    object-fit: cover;
+  }
+  .gallery-item .guest-label {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: linear-gradient(transparent, rgba(0,0,0,0.7));
+    padding: 20px 8px 8px;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 13px;
+    color: white;
+    text-align: center;
+  }
+  .empty-gallery {
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    color: var(--text-light);
+    text-align: center;
+    margin-top: 40px;
+    font-size: 16px;
+  }
+  .btn-back-gallery {
+    position: fixed; top: 20px; left: 20px;
+    padding: 8px 20px;
+    background: var(--warm-white);
+    border: 1px solid var(--gold);
+    border-radius: 40px;
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    color: var(--brown);
+    cursor: pointer;
+    z-index: 10;
+    text-transform: uppercase;
+  }
+
+  /* ── FLORAL SVG ── */
+  .grain {
+    position: fixed; inset: 0; z-index: 0;
+    pointer-events: none;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-size: 256px;
+  }
+
+  /* ── MUSIC BUTTON ── */
+  .music-btn {
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.85);
+    border: 1.5px solid var(--gold);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    box-shadow: 0 4px 16px rgba(122,92,74,0.2);
+    transition: transform 0.2s ease;
+    margin-top: 14px;
+  }
+  .music-btn:hover { transform: scale(1.1); }
+  .music-btn.muted { opacity: 0.5; }
+
+  /* ── PIN SCREEN ── */
+  #screen-pin .pin-title {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(18px, 4.5vw, 26px);
+    color: var(--brown);
+    text-align: center;
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+  }
+  #screen-pin .pin-sub {
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    font-size: clamp(13px, 3vw, 15px);
+    color: var(--text-light);
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .pin-dots {
+    display: flex; gap: 14px; justify-content: center;
+    margin-bottom: 28px;
+  }
+  .pin-dot {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    border: 2px solid var(--gold);
+    background: transparent;
+    transition: background 0.2s;
+  }
+  .pin-dot.filled { background: var(--rose-dark); border-color: var(--rose-dark); }
+  .pin-pad {
+    display: grid;
+    grid-template-columns: repeat(3, 72px);
+    gap: 12px;
+    justify-content: center;
+  }
+  .pin-key {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    border: 1.5px solid var(--gold);
+    background: var(--warm-white);
+    font-family: 'Cinzel', serif;
+    font-size: 22px;
+    color: var(--brown);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s ease;
+    box-shadow: 0 2px 8px rgba(122,92,74,0.1);
+  }
+  .pin-key:active { background: var(--rose-light); transform: scale(0.95); }
+  .pin-key.del { font-size: 18px; }
+  .pin-key.empty { border: none; background: transparent; box-shadow: none; pointer-events: none; }
+  .pin-error {
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    color: #c0392b;
+    font-size: 13px;
+    text-align: center;
+    margin-top: 16px;
+    min-height: 20px;
+    transition: opacity 0.3s;
+  }
+
+  @keyframes shake {
+    0%,100%{transform:translateX(0)}
+    20%{transform:translateX(-8px)}
+    40%{transform:translateX(8px)}
+    60%{transform:translateX(-6px)}
+    80%{transform:translateX(6px)}
+  }
+</style>
+</head>
+<body>
+
+<!-- Grain overlay -->
+<div class="grain"></div>
+
+<!-- Floral corners -->
+<svg class="floral-corner floral-tl" width="180" height="180" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g opacity="0.9">
+    <ellipse cx="30" cy="80" rx="18" ry="10" fill="#c9a0a0" transform="rotate(-30 30 80)"/>
+    <ellipse cx="50" cy="60" rx="16" ry="9" fill="#e8d0d0" transform="rotate(-60 50 60)"/>
+    <ellipse cx="70" cy="45" rx="15" ry="8" fill="#c9a0a0" transform="rotate(-80 70 45)"/>
+    <ellipse cx="90" cy="35" rx="14" ry="7" fill="#e8d0d0" transform="rotate(-100 90 35)"/>
+    <circle cx="55" cy="70" r="12" fill="#fdf0f0" stroke="#c9a0a0" stroke-width="1.5"/>
+    <circle cx="55" cy="70" r="5" fill="#c4a882"/>
+    <circle cx="80" cy="50" r="10" fill="#fff5f5" stroke="#e8d0d0" stroke-width="1.5"/>
+    <circle cx="80" cy="50" r="4" fill="#c4a882"/>
+    <path d="M10 150 Q40 100 80 80 Q120 60 150 30" stroke="#a8b5a0" stroke-width="1.5" fill="none" stroke-dasharray="4 3"/>
+    <circle cx="25" cy="130" r="4" fill="#a8b5a0"/>
+    <circle cx="45" cy="110" r="3" fill="#a8b5a0"/>
+    <circle cx="65" cy="95" r="3.5" fill="#a8b5a0"/>
+    <circle cx="100" cy="65" r="3" fill="#a8b5a0"/>
+    <ellipse cx="20" cy="110" rx="8" ry="14" fill="#b8c8b0" opacity="0.7" transform="rotate(20 20 110)"/>
+    <ellipse cx="40" cy="90" rx="7" ry="12" fill="#a8b5a0" opacity="0.6" transform="rotate(-10 40 90)"/>
+    <ellipse cx="60" cy="75" rx="6" ry="11" fill="#b8c8b0" opacity="0.7" transform="rotate(30 60 75)"/>
+    <ellipse cx="110" cy="50" rx="7" ry="12" fill="#a8b5a0" opacity="0.6" transform="rotate(-40 110 50)"/>
+  </g>
+</svg>
+
+<svg class="floral-corner floral-tr" width="180" height="180" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g opacity="0.9">
+    <ellipse cx="30" cy="80" rx="18" ry="10" fill="#c9a0a0" transform="rotate(-30 30 80)"/>
+    <ellipse cx="50" cy="60" rx="16" ry="9" fill="#e8d0d0" transform="rotate(-60 50 60)"/>
+    <ellipse cx="70" cy="45" rx="15" ry="8" fill="#c9a0a0" transform="rotate(-80 70 45)"/>
+    <ellipse cx="90" cy="35" rx="14" ry="7" fill="#e8d0d0" transform="rotate(-100 90 35)"/>
+    <circle cx="55" cy="70" r="12" fill="#fdf0f0" stroke="#c9a0a0" stroke-width="1.5"/>
+    <circle cx="55" cy="70" r="5" fill="#c4a882"/>
+    <circle cx="80" cy="50" r="10" fill="#fff5f5" stroke="#e8d0d0" stroke-width="1.5"/>
+    <circle cx="80" cy="50" r="4" fill="#c4a882"/>
+    <path d="M10 150 Q40 100 80 80 Q120 60 150 30" stroke="#a8b5a0" stroke-width="1.5" fill="none" stroke-dasharray="4 3"/>
+    <circle cx="25" cy="130" r="4" fill="#a8b5a0"/>
+    <circle cx="45" cy="110" r="3" fill="#a8b5a0"/>
+    <circle cx="65" cy="95" r="3.5" fill="#a8b5a0"/>
+    <circle cx="100" cy="65" r="3" fill="#a8b5a0"/>
+    <ellipse cx="20" cy="110" rx="8" ry="14" fill="#b8c8b0" opacity="0.7" transform="rotate(20 20 110)"/>
+    <ellipse cx="40" cy="90" rx="7" ry="12" fill="#a8b5a0" opacity="0.6" transform="rotate(-10 40 90)"/>
+    <ellipse cx="60" cy="75" rx="6" ry="11" fill="#b8c8b0" opacity="0.7" transform="rotate(30 60 75)"/>
+    <ellipse cx="110" cy="50" rx="7" ry="12" fill="#a8b5a0" opacity="0.6" transform="rotate(-40 110 50)"/>
+  </g>
+</svg>
+
+<svg class="floral-corner floral-bl" width="180" height="180" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g opacity="0.9">
+    <ellipse cx="30" cy="80" rx="18" ry="10" fill="#c9a0a0" transform="rotate(-30 30 80)"/>
+    <ellipse cx="50" cy="60" rx="16" ry="9" fill="#e8d0d0" transform="rotate(-60 50 60)"/>
+    <ellipse cx="70" cy="45" rx="15" ry="8" fill="#c9a0a0" transform="rotate(-80 70 45)"/>
+    <ellipse cx="90" cy="35" rx="14" ry="7" fill="#e8d0d0" transform="rotate(-100 90 35)"/>
+    <circle cx="55" cy="70" r="12" fill="#fdf0f0" stroke="#c9a0a0" stroke-width="1.5"/>
+    <circle cx="55" cy="70" r="5" fill="#c4a882"/>
+    <circle cx="80" cy="50" r="10" fill="#fff5f5" stroke="#e8d0d0" stroke-width="1.5"/>
+    <circle cx="80" cy="50" r="4" fill="#c4a882"/>
+    <path d="M10 150 Q40 100 80 80 Q120 60 150 30" stroke="#a8b5a0" stroke-width="1.5" fill="none" stroke-dasharray="4 3"/>
+    <circle cx="25" cy="130" r="4" fill="#a8b5a0"/>
+    <circle cx="45" cy="110" r="3" fill="#a8b5a0"/>
+    <ellipse cx="20" cy="110" rx="8" ry="14" fill="#b8c8b0" opacity="0.7" transform="rotate(20 20 110)"/>
+    <ellipse cx="40" cy="90" rx="7" ry="12" fill="#a8b5a0" opacity="0.6" transform="rotate(-10 40 90)"/>
+  </g>
+</svg>
+
+<svg class="floral-corner floral-br" width="180" height="180" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g opacity="0.9">
+    <ellipse cx="30" cy="80" rx="18" ry="10" fill="#c9a0a0" transform="rotate(-30 30 80)"/>
+    <ellipse cx="50" cy="60" rx="16" ry="9" fill="#e8d0d0" transform="rotate(-60 50 60)"/>
+    <ellipse cx="70" cy="45" rx="15" ry="8" fill="#c9a0a0" transform="rotate(-80 70 45)"/>
+    <ellipse cx="90" cy="35" rx="14" ry="7" fill="#e8d0d0" transform="rotate(-100 90 35)"/>
+    <circle cx="55" cy="70" r="12" fill="#fdf0f0" stroke="#c9a0a0" stroke-width="1.5"/>
+    <circle cx="55" cy="70" r="5" fill="#c4a882"/>
+    <circle cx="80" cy="50" r="10" fill="#fff5f5" stroke="#e8d0d0" stroke-width="1.5"/>
+    <circle cx="80" cy="50" r="4" fill="#c4a882"/>
+    <path d="M10 150 Q40 100 80 80 Q120 60 150 30" stroke="#a8b5a0" stroke-width="1.5" fill="none" stroke-dasharray="4 3"/>
+    <circle cx="25" cy="130" r="4" fill="#a8b5a0"/>
+    <circle cx="45" cy="110" r="3" fill="#a8b5a0"/>
+    <ellipse cx="20" cy="110" rx="8" ry="14" fill="#b8c8b0" opacity="0.7" transform="rotate(20 20 110)"/>
+    <ellipse cx="40" cy="90" rx="7" ry="12" fill="#a8b5a0" opacity="0.6" transform="rotate(-10 40 90)"/>
+  </g>
+</svg>
+
+<!-- SCREEN 1: WELCOME -->
+<div class="screen active" id="screen-welcome">
+  <div class="divider" style="margin-bottom:0">
+    <div class="divider-line"></div>
+    <div class="divider-diamond"></div>
+    <div class="divider-line"></div>
+  </div>
+  <div class="couple-names" style="margin-top:12px">
+    Hakeem
+    <span class="ampersand">&amp;</span>
+    Arina
+  </div>
+  <div class="tagline">The Wedding Guestbook</div>
+  <div class="divider">
+    <div class="divider-line"></div>
+    <div class="divider-diamond"></div>
+    <div class="divider-line"></div>
+  </div>
+  <p class="instruction">
+    Leave a heartfelt video message<br>for the newlyweds to cherish forever
+  </p>
+  <button class="btn-primary" onclick="goTo('screen-name')">Leave a Message</button>
+  <button class="btn-secondary" onclick="goTo('screen-pin')">View Messages</button>
+  <button class="music-btn" id="music-btn" onclick="toggleMusic()" title="Toggle music">🎵</button>
+</div>
+
+<!-- SCREEN 2: NAME INPUT -->
+<div class="screen" id="screen-name">
+  <p class="title" style="font-family:'Cinzel',serif; font-size:clamp(18px,4.5vw,26px); color:var(--brown); text-align:center; letter-spacing:0.1em">Who are you?</p>
+  <p style="font-family:'IM Fell English',serif; font-style:italic; font-size:clamp(13px,3vw,16px); color:var(--text-light); text-align:center; margin-bottom:28px">Tell the couple your name</p>
+  <div class="input-wrap">
+    <input type="text" id="guest-name" placeholder="Your name..." maxlength="40" autocomplete="off"/>
+  </div>
+  <button class="btn-primary" onclick="startRecord()">Continue →</button>
+  <button class="btn-secondary" style="margin-top:10px" onclick="goTo('screen-welcome')">← Back</button>
+</div>
+
+<!-- SCREEN 3: RECORD -->
+<div class="screen" id="screen-record">
+  <p class="guest-greeting" id="guest-greeting">Dear guest,</p>
+  <p class="record-title">Record Your Message</p>
+
+  <div class="video-frame">
+    <video id="preview-video" autoplay muted playsinline></video>
+    <div class="rec-indicator" id="rec-indicator">
+      <div class="rec-dot"></div> REC
+    </div>
+  </div>
+
+  <div class="timer-ring" id="timer-ring" style="display:none">
+    <svg width="80" height="80" viewBox="0 0 80 80">
+      <circle cx="40" cy="40" r="34" fill="none" stroke="#e8d0d0" stroke-width="5"/>
+      <circle id="timer-circle" cx="40" cy="40" r="34" fill="none" stroke="#9e6b6b" stroke-width="5"
+        stroke-dasharray="213.6" stroke-dashoffset="0" stroke-linecap="round"/>
+    </svg>
+    <div class="timer-text" id="timer-text">60</div>
+  </div>
+  <p class="timer-hint" id="timer-hint" style="display:none">seconds remaining</p>
+
+  <div class="record-controls">
+    <button class="btn-record" id="btn-record" onclick="toggleRecord()">
+      <div class="inner"></div>
+    </button>
+    <span class="record-label" id="record-label">Tap to Record</span>
+  </div>
+
+  <button class="btn-secondary" style="margin-top:14px" onclick="stopAndBack()">← Back</button>
+</div>
+
+<!-- SCREEN 4: REVIEW -->
+<div class="screen" id="screen-review">
+  <p class="review-title">Review Your Message</p>
+  <p class="review-sub">Happy with it? Save it for Hakeem &amp; Arina 💕</p>
+  <div class="playback-wrap"><video id="playback-video" controls playsinline></video></div>
+  <div class="review-btns">
+    <button class="btn-primary" onclick="saveVideo()">Save Message 💾</button>
+    <button class="btn-secondary" onclick="retakeVideo()">Retake</button>
+  </div>
+</div>
+
+<!-- SCREEN 5: SAVED -->
+<div class="screen" id="screen-saved">
+  <div class="saved-icon">🌸</div>
+  <p class="saved-title">Thank You!</p>
+  <div class="divider" style="max-width:200px; margin:12px auto">
+    <div class="divider-line"></div>
+    <div class="divider-diamond"></div>
+    <div class="divider-line"></div>
+  </div>
+  <p class="saved-msg" id="saved-msg">Your message has been saved.<br>Hakeem &amp; Arina will cherish it forever 💕</p>
+  <button class="btn-primary" style="margin-top:28px" onclick="goTo('screen-welcome')">Done</button>
+</div>
+
+<!-- SCREEN PIN: Password for gallery -->
+<div class="screen" id="screen-pin">
+  <p class="pin-title">Private Gallery</p>
+  <p class="pin-sub">Enter the password to view messages</p>
+  <div class="pin-dots" id="pin-dots">
+    <div class="pin-dot" id="dot-0"></div>
+    <div class="pin-dot" id="dot-1"></div>
+    <div class="pin-dot" id="dot-2"></div>
+    <div class="pin-dot" id="dot-3"></div>
+    <div class="pin-dot" id="dot-4"></div>
+    <div class="pin-dot" id="dot-5"></div>
+  </div>
+  <div class="pin-pad">
+    <button class="pin-key" onclick="pinPress('1')">1</button>
+    <button class="pin-key" onclick="pinPress('2')">2</button>
+    <button class="pin-key" onclick="pinPress('3')">3</button>
+    <button class="pin-key" onclick="pinPress('4')">4</button>
+    <button class="pin-key" onclick="pinPress('5')">5</button>
+    <button class="pin-key" onclick="pinPress('6')">6</button>
+    <button class="pin-key" onclick="pinPress('7')">7</button>
+    <button class="pin-key" onclick="pinPress('8')">8</button>
+    <button class="pin-key" onclick="pinPress('9')">9</button>
+    <button class="pin-key empty"></button>
+    <button class="pin-key" onclick="pinPress('0')">0</button>
+    <button class="pin-key del" onclick="pinDelete()">⌫</button>
+  </div>
+  <p class="pin-error" id="pin-error"></p>
+  <button class="btn-secondary" style="margin-top:16px" onclick="goTo('screen-welcome')">← Back</button>
+</div>
+
+<!-- SCREEN 6: GALLERY -->
+<div class="screen" id="screen-gallery">
+  <button class="btn-back-gallery" onclick="goTo('screen-welcome')">← Back</button>
+  <p class="gallery-title">Messages for the Couple 💕</p>
+  <div class="gallery-grid" id="gallery-grid"></div>
+</div>
+
+<script>
+  let stream = null;
+  let mediaRecorder = null;
+  let recordedChunks = [];
+  let recordedBlob = null;
+  let timerInterval = null;
+  let seconds = 60;
+  let isRecording = false;
+  let guestName = '';
+  let savedMessages = [];
+
+  function goTo(screenId) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(screenId).classList.add('active');
+    if (screenId === 'screen-gallery') renderGallery();
+    handleMusicForScreen(screenId);
+  }
+
+  function startRecord() {
+    guestName = document.getElementById('guest-name').value.trim();
+    if (!guestName) {
+      document.getElementById('guest-name').style.borderColor = '#ff3b30';
+      document.getElementById('guest-name').placeholder = 'Please enter your name...';
+      return;
+    }
+    document.getElementById('guest-greeting').textContent = `Dear ${guestName},`;
+    goTo('screen-record');
+    initCamera();
+  }
+
+  async function initCamera() {
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: true });
+      document.getElementById('preview-video').srcObject = stream;
+    } catch(e) {
+      alert('Camera access is required. Please allow camera permissions and try again.');
+    }
+  }
+
+  function toggleRecord() {
+    if (!isRecording) startRecording();
+    else stopRecording();
+  }
+
+  function startRecording() {
+    if (!stream) return;
+    recordedChunks = [];
+    isRecording = true;
+
+    // Try mp4 first (iOS Safari), then webm (Android Chrome)
+    let options = {};
+    if (MediaRecorder.isTypeSupported('video/mp4;codecs=h264,aac')) {
+      options = { mimeType: 'video/mp4;codecs=h264,aac' };
+    } else if (MediaRecorder.isTypeSupported('video/mp4')) {
+      options = { mimeType: 'video/mp4' };
+    } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) {
+      options = { mimeType: 'video/webm;codecs=vp9' };
+    } else if (MediaRecorder.isTypeSupported('video/webm')) {
+      options = { mimeType: 'video/webm' };
+    }
+
+    mediaRecorder = new MediaRecorder(stream, options);
+    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
+    mediaRecorder.onstop = handleRecordingStop;
+    mediaRecorder.start(100);
+
+    document.getElementById('btn-record').classList.add('recording');
+    document.getElementById('record-label').textContent = 'Tap to Stop';
+    document.getElementById('rec-indicator').classList.add('show');
+    document.getElementById('timer-ring').style.display = 'block';
+    document.getElementById('timer-hint').style.display = 'block';
+
+    seconds = 60;
+    updateTimerDisplay();
+    timerInterval = setInterval(() => {
+      seconds--;
+      updateTimerDisplay();
+      if (seconds <= 0) stopRecording();
+    }, 1000);
+  }
+
+  function updateTimerDisplay() {
+    document.getElementById('timer-text').textContent = seconds;
+    const circumference = 213.6;
+    const offset = circumference * (1 - seconds / 60);
+    document.getElementById('timer-circle').style.strokeDashoffset = offset;
+  }
+
+  function stopRecording() {
+    if (!isRecording) return;
+    isRecording = false;
+    clearInterval(timerInterval);
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+    document.getElementById('btn-record').classList.remove('recording');
+    document.getElementById('record-label').textContent = 'Tap to Record';
+    document.getElementById('rec-indicator').classList.remove('show');
+    document.getElementById('timer-ring').style.display = 'none';
+    document.getElementById('timer-hint').style.display = 'none';
+  }
+
+  function handleRecordingStop() {
+    const mimeType = mediaRecorder.mimeType || recordedChunks[0]?.type || 'video/webm';
+    recordedBlob = new Blob(recordedChunks, { type: mimeType });
+    const url = URL.createObjectURL(recordedBlob);
+    const playback = document.getElementById('playback-video');
+    playback.src = url;
+    goTo('screen-review');
+  }
+
+  function retakeVideo() {
+    recordedBlob = null;
+    goTo('screen-record');
+  }
+
+  function saveVideo() {
+    if (!recordedBlob) return;
+    const objectUrl = URL.createObjectURL(recordedBlob);
+    const dateStr = new Date().toLocaleDateString('en-MY', { day: 'numeric', month: 'long', year: 'numeric' });
+    savedMessages.push({ name: guestName, date: dateStr, url: objectUrl });
+    // Use correct extension based on actual recorded format
+    const mimeUsed = recordedBlob.type || '';
+    const ext = mimeUsed.includes('mp4') ? 'mp4' : 'webm';
+    const a = document.createElement('a');
+    a.href = objectUrl;
+    a.download = 'message_from_' + guestName.replace(/ /g, '_') + '.' + ext;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    document.getElementById('saved-msg').innerHTML = 'Saved! Hakeem & Arina will cherish your message forever';
+    document.getElementById('guest-name').value = '';
+    if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+    goTo('screen-saved');
+  }
+
+  function stopAndBack() {
+    stopRecording();
+    if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+    goTo('screen-welcome');
+  }
+
+
+  // ── PIN LOGIC ──
+  const CORRECT_PIN = '112233';
+  let pinEntry = '';
+
+  function pinPress(num) {
+    if (pinEntry.length >= 6) return;
+    pinEntry += num;
+    updatePinDots();
+    if (pinEntry.length === 6) {
+      setTimeout(checkPin, 200);
+    }
+  }
+
+  function pinDelete() {
+    pinEntry = pinEntry.slice(0, -1);
+    document.getElementById('pin-error').textContent = '';
+    updatePinDots();
+  }
+
+  function updatePinDots() {
+    for (let i = 0; i < 6; i++) {
+      const dot = document.getElementById('dot-' + i);
+      dot.classList.toggle('filled', i < pinEntry.length);
+    }
+  }
+
+  function checkPin() {
+    if (pinEntry === CORRECT_PIN) {
+      pinEntry = '';
+      updatePinDots();
+      document.getElementById('pin-error').textContent = '';
+      goTo('screen-gallery');
+    } else {
+      document.getElementById('pin-error').textContent = 'Incorrect password. Try again.';
+      pinEntry = '';
+      // Shake animation
+      const dots = document.getElementById('pin-dots');
+      dots.style.animation = 'shake 0.4s ease';
+      setTimeout(() => { dots.style.animation = ''; }, 400);
+      updatePinDots();
+    }
+  }
+
+  function renderGallery() {
+    const grid = document.getElementById('gallery-grid');
+    grid.innerHTML = '';
+    if (savedMessages.length === 0) {
+      grid.innerHTML = '<p class="empty-gallery" style="grid-column:1/-1">No messages yet.<br>Be the first to leave one! 🌸</p>';
+      return;
+    }
+    savedMessages.forEach(function(msg) {
+      const div = document.createElement('div');
+      div.className = 'gallery-item';
+      const video = document.createElement('video');
+      video.src = msg.url;
+      video.setAttribute('playsinline', '');
+      video.setAttribute('preload', 'metadata');
+      video.setAttribute('controls', '');
+      video.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+      const label = document.createElement('div');
+      label.className = 'guest-label';
+      label.innerHTML = msg.name + '<br><span style="font-size:10px;opacity:0.7">' + msg.date + '</span>';
+      div.appendChild(video);
+      div.appendChild(label);
+      grid.appendChild(div);
+    });
+  }
+</script>
+
+<!-- YouTube background music - Bergema Sampai Selamanya -->
+<iframe id="yt-player"
+  src="https://www.youtube.com/embed/gvunApwKIiY?autoplay=1&loop=1&playlist=gvunApwKIiY&controls=0&mute=0&enablejsapi=1"
+  style="position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;top:-9999px"
+  allow="autoplay"
+  frameborder="0">
+</iframe>
+
+
+
+<script>
+  let musicMuted = false;
+
+  function toggleMusic() {
+    const iframe = document.getElementById('yt-player');
+    const btn = document.getElementById('music-btn');
+    musicMuted = !musicMuted;
+
+    if (musicMuted) {
+      // Mute by reloading iframe with mute=1
+      iframe.src = iframe.src.replace('mute=0', 'mute=1').replace('mute=1&mute=1', 'mute=1');
+      btn.textContent = '🔇';
+      btn.classList.add('muted');
+    } else {
+      iframe.src = iframe.src.replace('mute=1', 'mute=0');
+      btn.textContent = '🎵';
+      btn.classList.remove('muted');
+    }
+  }
+
+  // Music only plays on welcome screen
+  function handleMusicForScreen(screenId) {
+    if (musicMuted) return;
+    const iframe = document.getElementById('yt-player');
+    if (!iframe) return;
+    const src = iframe.src;
+    if (screenId === 'screen-welcome') {
+      // Unmute on welcome screen
+      if (src.includes('mute=1')) iframe.src = src.replace('mute=1', 'mute=0');
+    } else {
+      // Mute on all other screens
+      if (src.includes('mute=0')) iframe.src = src.replace('mute=0', 'mute=1');
+    }
+  }
+</script>
+
+</body>
+</html>
