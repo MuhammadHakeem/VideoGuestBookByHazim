@@ -417,6 +417,64 @@
     letter-spacing: 0.1em;
     margin-bottom: 20px;
   }
+  
+  .gallery-actions {
+    position: fixed;
+    top: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    z-index: 10;
+    background: rgba(253, 248, 240, 0.95);
+    padding: 12px 20px;
+    border-radius: 30px;
+    border: 1px solid var(--gold);
+    box-shadow: 0 4px 16px rgba(122,92,74,0.2);
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 90%;
+  }
+
+  .action-btn {
+    padding: 8px 16px;
+    background: var(--warm-white);
+    border: 1px solid var(--gold);
+    border-radius: 20px;
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--brown);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+  
+  .action-btn:hover {
+    background: var(--gold-light);
+    transform: translateY(-1px);
+  }
+  
+  .action-btn.danger {
+    border-color: #c0392b;
+    color: #c0392b;
+  }
+  
+  .action-btn.danger:hover {
+    background: #fadbd8;
+  }
+  
+  .action-btn.primary {
+    background: linear-gradient(135deg, var(--rose-dark), var(--brown));
+    color: white;
+    border: none;
+  }
+  
+  .action-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
   .gallery-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -432,7 +490,25 @@
     position: relative;
     aspect-ratio: 4/3;
     cursor: pointer;
+    transition: border-color 0.2s;
   }
+  
+  .gallery-item.selected {
+    border-color: var(--rose-dark);
+    border-width: 3px;
+  }
+  
+  .gallery-item-checkbox {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    z-index: 2;
+    accent-color: var(--rose-dark);
+  }
+  
   .gallery-item video {
     width: 100%; height: 100%;
     object-fit: cover;
@@ -832,6 +908,14 @@
 
 <div class="screen" id="screen-gallery">
   <button class="btn-back-gallery" onclick="goTo('screen-welcome')">← Back</button>
+  
+  <div class="gallery-actions" id="gallery-actions">
+    <button class="action-btn" onclick="toggleSelectAll()" id="btn-select-all">Select All</button>
+    <button class="action-btn primary" onclick="downloadSelected()" id="btn-download" disabled>📥 Download Selected</button>
+    <button class="action-btn danger" onclick="deleteSelected()" id="btn-delete" disabled>🗑️ Delete Selected</button>
+    <span style="font-family:'IM Fell English',serif; font-size:12px; color:var(--text-light); padding:0 10px;" id="selection-count">0 selected</span>
+  </div>
+  
   <p class="gallery-title">Messages for the Couple 💕</p>
   <div class="gallery-grid" id="gallery-grid"></div>
 </div>
@@ -848,6 +932,7 @@
   // ====== PAGINATION SETUP ======
   let currentPage = 1;
   const VIDEOS_PER_PAGE = 20; // Adjust based on device performance
+  let selectedVideoIds = new Set(); // Track selected video IDs
 
   async function initDB() {
     return new Promise((resolve, reject) => {
@@ -1167,8 +1252,11 @@
     
     if (allMessages.length === 0) {
       grid.innerHTML = '<p class="empty-gallery" style="grid-column:1/-1">No messages yet.<br>Be the first to leave one! 🌸</p>';
+      document.getElementById('gallery-actions').style.display = 'none';
       return;
     }
+    
+    document.getElementById('gallery-actions').style.display = 'flex';
     
     // Calculate pagination
     const totalPages = Math.ceil(allMessages.length / VIDEOS_PER_PAGE);
@@ -1188,6 +1276,21 @@
     for (const msg of messages) {
       const div = document.createElement('div');
       div.className = 'gallery-item';
+      div.dataset.videoId = msg.id;
+      
+      if (selectedVideoIds.has(msg.id)) {
+        div.classList.add('selected');
+      }
+      
+      // Checkbox
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.className = 'gallery-item-checkbox';
+      checkbox.checked = selectedVideoIds.has(msg.id);
+      checkbox.onclick = (e) => {
+        e.stopPropagation();
+        toggleVideoSelection(msg.id);
+      };
       
       const video = document.createElement('video');
       
@@ -1209,6 +1312,7 @@
       label.className = 'guest-label';
       label.innerHTML = msg.name + '<br><span style="font-size:10px;opacity:0.7">' + msg.dateStr + '</span>';
       
+      div.appendChild(checkbox);
       div.appendChild(video);
       div.appendChild(label);
       grid.appendChild(div);
@@ -1319,7 +1423,133 @@
       grid.appendChild(paginationDiv);
     }
     
+    updateSelectionUI();
     console.log(`📄 Loaded page ${page}/${totalPages} (${messages.length} videos)`);
+  }
+
+  // ====== GALLERY SELECTION & ACTIONS ======
+  function toggleVideoSelection(videoId) {
+    const item = document.querySelector(`[data-video-id="${videoId}"]`);
+    const checkbox = item.querySelector('.gallery-item-checkbox');
+    
+    if (selectedVideoIds.has(videoId)) {
+      selectedVideoIds.delete(videoId);
+      item.classList.remove('selected');
+      checkbox.checked = false;
+    } else {
+      selectedVideoIds.add(videoId);
+      item.classList.add('selected');
+      checkbox.checked = true;
+    }
+    
+    updateSelectionUI();
+  }
+
+  async function toggleSelectAll() {
+    const allMessages = await getAllMessages();
+    const btn = document.getElementById('btn-select-all');
+    
+    if (selectedVideoIds.size === allMessages.length) {
+      // Deselect all
+      selectedVideoIds.clear();
+      btn.textContent = 'Select All';
+    } else {
+      // Select all
+      selectedVideoIds.clear();
+      allMessages.forEach(msg => selectedVideoIds.add(msg.id));
+      btn.textContent = 'Deselect All';
+    }
+    
+    renderGallery(currentPage);
+  }
+
+  function updateSelectionUI() {
+    const count = selectedVideoIds.size;
+    document.getElementById('selection-count').textContent = `${count} selected`;
+    document.getElementById('btn-download').disabled = count === 0;
+    document.getElementById('btn-delete').disabled = count === 0;
+    
+    getAllMessages().then(messages => {
+      const btn = document.getElementById('btn-select-all');
+      if (btn) {
+        btn.textContent = count === messages.length ? 'Deselect All' : 'Select All';
+      }
+    });
+  }
+
+  async function downloadSelected() {
+    if (selectedVideoIds.size === 0) return;
+    
+    const allMessages = await getAllMessages();
+    const selectedMessages = allMessages.filter(msg => selectedVideoIds.has(msg.id));
+    
+    if (!confirm(`Download ${selectedMessages.length} video(s)?`)) return;
+    
+    console.log(`📥 Starting download of ${selectedMessages.length} videos...`);
+    
+    for (let i = 0; i < selectedMessages.length; i++) {
+      const msg = selectedMessages[i];
+      const url = URL.createObjectURL(msg.blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const ext = msg.mimeType.includes('mp4') ? 'mp4' : 'webm';
+      
+      // Format timestamp from ISO string (e.g., "2026-06-22T15:30:45.123Z")
+      const timestamp = new Date(msg.timestamp);
+      const timeStr = timestamp.toLocaleTimeString('en-MY', { 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        second: '2-digit',
+        hour12: false 
+      }).replace(/:/g, '-');
+      
+      a.download = `${i + 1}_${msg.name.replace(/ /g, '_')}_${msg.dateStr.replace(/ /g, '_')}_${timeStr}.${ext}`;
+      
+      // Stagger downloads to avoid browser blocking
+      setTimeout(() => {
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        console.log(`📥 Downloaded: ${a.download}`);
+      }, i * 500);
+    }
+    
+    alert(`Started downloading ${selectedMessages.length} video(s).\nCheck your Downloads folder.`);
+  }
+
+  async function deleteSelected() {
+    if (selectedVideoIds.size === 0) return;
+    
+    const allMessages = await getAllMessages();
+    const selectedMessages = allMessages.filter(msg => selectedVideoIds.has(msg.id));
+    
+    const confirmMsg = `Delete ${selectedMessages.length} video(s)?\n\nThis cannot be undone!\n\nDeleting:\n${selectedMessages.slice(0, 5).map(m => '- ' + m.name).join('\n')}${selectedMessages.length > 5 ? '\n... and ' + (selectedMessages.length - 5) + ' more' : ''}`;
+    
+    if (!confirm(confirmMsg)) return;
+    
+    console.log(`🗑️ Deleting ${selectedMessages.length} videos...`);
+    
+    return new Promise((resolve) => {
+      const transaction = db.transaction([STORE_NAME], 'readwrite');
+      const store = transaction.objectStore(STORE_NAME);
+      
+      let deleted = 0;
+      selectedMessages.forEach(msg => {
+        const request = store.delete(msg.id);
+        request.onsuccess = () => {
+          deleted++;
+          console.log(`🗑️ Deleted: ${msg.name}`);
+          
+          if (deleted === selectedMessages.length) {
+            selectedVideoIds.clear();
+            renderGallery(currentPage);
+            alert(`Successfully deleted ${deleted} video(s)`);
+            resolve(true);
+          }
+        };
+      });
+    });
   }
 
   // ====== MUSIC CONTROL ======
@@ -1510,7 +1740,17 @@
         const a = document.createElement('a');
         a.href = url;
         const ext = msg.mimeType.includes('mp4') ? 'mp4' : 'webm';
-        a.download = `${i + 1}_${msg.name.replace(/ /g, '_')}_${msg.dateStr.replace(/ /g, '_')}.${ext}`;
+        
+        // Format timestamp
+        const timestamp = new Date(msg.timestamp);
+        const timeStr = timestamp.toLocaleTimeString('en-MY', { 
+          hour: '2-digit', 
+          minute: '2-digit', 
+          second: '2-digit',
+          hour12: false 
+        }).replace(/:/g, '-');
+        
+        a.download = `${i + 1}_${msg.name.replace(/ /g, '_')}_${msg.dateStr.replace(/ /g, '_')}_${timeStr}.${ext}`;
         
         // Stagger downloads
         setTimeout(() => {
