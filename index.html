@@ -424,16 +424,36 @@
     left: 50%;
     transform: translateX(-50%);
     display: flex;
-    gap: 10px;
+    gap: 8px;
     z-index: 10;
     background: rgba(253, 248, 240, 0.95);
-    padding: 12px 20px;
+    padding: 10px 16px;
     border-radius: 30px;
     border: 1px solid var(--gold);
     box-shadow: 0 4px 16px rgba(122,92,74,0.2);
     flex-wrap: wrap;
     justify-content: center;
     max-width: 90%;
+  }
+
+  /* Mobile adjustments */
+  @media (max-width: 768px) {
+    .gallery-actions {
+      top: 60px;
+      gap: 6px;
+      padding: 8px 12px;
+      font-size: 10px;
+    }
+    
+    .action-btn {
+      padding: 6px 12px;
+      font-size: 9px;
+    }
+    
+    #selection-count {
+      font-size: 10px;
+      padding: 0 6px;
+    }
   }
 
   .action-btn {
@@ -1220,13 +1240,19 @@
         console.log('Using video/webm for Android');
       }
     } else {
-      // Desktop - try best quality first
-      if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) {
-        options = { mimeType: 'video/webm;codecs=vp9' };
-      } else if (MediaRecorder.isTypeSupported('video/webm')) {
-        options = { mimeType: 'video/webm' };
+      // Desktop - prioritize MP4 for better compatibility
+      if (MediaRecorder.isTypeSupported('video/mp4;codecs=h264,aac')) {
+        options = { mimeType: 'video/mp4;codecs=h264,aac' };
+        console.log('Using video/mp4 with h264,aac for Desktop');
       } else if (MediaRecorder.isTypeSupported('video/mp4')) {
         options = { mimeType: 'video/mp4' };
+        console.log('Using video/mp4 for Desktop');
+      } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) {
+        options = { mimeType: 'video/webm;codecs=vp9' };
+        console.log('Using video/webm fallback for Desktop');
+      } else if (MediaRecorder.isTypeSupported('video/webm')) {
+        options = { mimeType: 'video/webm' };
+        console.log('Using video/webm basic fallback for Desktop');
       }
     }
 
