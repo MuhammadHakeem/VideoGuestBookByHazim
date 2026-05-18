@@ -16,7 +16,7 @@
     --rose-dark: #9e6b6b;
     --sage: #a8b5a0;
     --gold: #c4a882;
-    --gold-light: #e8d9c4;
+    --gold-light: #e8d0d0;
     --brown: #7a5c4a;
     --text: #3d2b1f;
     --text-light: #7a6a60;
@@ -31,7 +31,6 @@
     touch-action: manipulation;
   }
 
-  /* ── FLORAL SVG DECORATIONS ── */
   .floral-corner {
     position: fixed;
     pointer-events: none;
@@ -43,7 +42,6 @@
   .floral-bl { bottom: -10px; left: -10px; transform: rotate(270deg); }
   .floral-br { bottom: -10px; right: -10px; transform: rotate(180deg); }
 
-  /* ── SCREENS ── */
   .screen {
     position: fixed; inset: 0;
     display: flex; flex-direction: column;
@@ -55,7 +53,6 @@
   }
   .screen.active { opacity: 1; pointer-events: all; }
 
-  /* ── DIVIDER ── */
   .divider {
     display: flex; align-items: center; gap: 12px;
     width: 100%; max-width: 320px;
@@ -69,7 +66,6 @@
     opacity: 0.8;
   }
 
-  /* ── WELCOME SCREEN ── */
   #screen-welcome .couple-names {
     font-family: 'Cinzel', serif;
     font-size: clamp(28px, 7vw, 48px);
@@ -138,7 +134,6 @@
   }
   .btn-secondary:hover { background: var(--gold-light); color: var(--brown); }
 
-  /* ── NAME SCREEN ── */
   #screen-name .title {
     font-family: 'Cinzel', serif;
     font-size: clamp(18px, 4.5vw, 28px);
@@ -176,7 +171,6 @@
   .input-wrap input:focus { border-color: var(--rose-dark); }
   .input-wrap input::placeholder { color: var(--text-light); font-style: italic; }
 
-  /* ── RECORD SCREEN ── */
   #screen-record { padding: 20px; }
   #screen-record .guest-greeting {
     font-family: 'IM Fell English', serif;
@@ -192,11 +186,46 @@
     color: var(--brown);
     text-align: center;
     letter-spacing: 0.1em;
-    margin-bottom: 16px;
+    margin-bottom: 20px;
+  }
+
+  /* Tablet layout: side by side */
+  .record-layout {
+    display: flex;
+    gap: 30px;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* Mobile layout: stacked */
+  @media (max-width: 768px) {
+    .record-layout {
+      flex-direction: column;
+      gap: 20px;
+    }
+  }
+
+  .video-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .controls-section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+    min-width: 200px;
   }
 
   .video-frame {
-    width: 100%; max-width: 380px;
+    width: 100%; 
+    max-width: none;
     aspect-ratio: 4/3;
     border-radius: 16px;
     overflow: hidden;
@@ -291,7 +320,6 @@
     text-transform: uppercase;
   }
 
-  /* ── REVIEW SCREEN ── */
   #screen-review .review-title {
     font-family: 'Cinzel', serif;
     font-size: clamp(16px, 4vw, 22px);
@@ -306,10 +334,44 @@
     color: var(--text-light);
     font-size: 14px;
     text-align: center;
-    margin-bottom: 16px;
+    margin-bottom: 20px;
   }
+  
+  .review-layout {
+    display: flex;
+    gap: 30px;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* Mobile layout: stacked */
+  @media (max-width: 768px) {
+    .review-layout {
+      flex-direction: column;
+      gap: 20px;
+    }
+  }
+
+  .playback-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .review-controls-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+    min-width: 200px;
+  }
+
   .playback-wrap {
-    width: 100%; max-width: 340px;
+    width: 100%; max-width: none;
     border-radius: 16px;
     overflow: hidden;
     border: 2px solid var(--gold-light);
@@ -320,9 +382,8 @@
     width: 100%;
     display: block;
   }
-  .review-btns { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; justify-content: center; }
+  .review-btns { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
 
-  /* ── SAVED SCREEN ── */
   #screen-saved .saved-icon {
     font-size: 56px;
     margin-bottom: 12px;
@@ -347,7 +408,6 @@
     margin-top: 8px;
   }
 
-  /* ── GALLERY SCREEN ── */
   #screen-gallery { overflow-y: auto; padding-top: 80px; }
   #screen-gallery .gallery-title {
     font-family: 'Cinzel', serif;
@@ -409,7 +469,6 @@
     text-transform: uppercase;
   }
 
-  /* ── FLORAL SVG ── */
   .grain {
     position: fixed; inset: 0; z-index: 0;
     pointer-events: none;
@@ -418,8 +477,35 @@
     background-size: 256px;
   }
 
-  /* ── MUSIC BUTTON ── */
-  .music-btn {
+  .control-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+  }
+
+  .music-hint {
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    font-size: 11px;
+    color: var(--text-light);
+    opacity: 0.7;
+    margin-top: 6px;
+    display: none;
+  }
+
+  .music-hint.show {
+    display: block;
+  }
+
+  .control-buttons-row {
+    display: flex;
+    gap: 10px;
+  }
+
+  .music-btn, .fullscreen-btn {
     width: 46px; height: 46px;
     border-radius: 50%;
     background: rgba(255,255,255,0.85);
@@ -429,12 +515,10 @@
     font-size: 20px;
     box-shadow: 0 4px 16px rgba(122,92,74,0.2);
     transition: transform 0.2s ease;
-    margin-top: 14px;
   }
-  .music-btn:hover { transform: scale(1.1); }
+  .music-btn:hover, .fullscreen-btn:hover { transform: scale(1.1); }
   .music-btn.muted { opacity: 0.5; }
 
-  /* ── PIN SCREEN ── */
   #screen-pin .pin-title {
     font-family: 'Cinzel', serif;
     font-size: clamp(18px, 4.5vw, 26px);
@@ -503,14 +587,27 @@
     60%{transform:translateX(-6px)}
     80%{transform:translateX(6px)}
   }
+
+  /* Database status indicator */
+  .db-status {
+    position: fixed; bottom: 20px; right: 20px;
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    padding: 8px 12px;
+    background: rgba(255,255,255,0.9);
+    border: 1px solid var(--gold);
+    border-radius: 20px;
+    color: var(--text);
+    z-index: 5;
+  }
+  .db-status.success { color: #27ae60; }
+  .db-status.error { color: #c0392b; }
 </style>
 </head>
 <body>
 
-<!-- Grain overlay -->
 <div class="grain"></div>
 
-<!-- Floral corners -->
 <svg class="floral-corner floral-tl" width="180" height="180" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
   <g opacity="0.9">
     <ellipse cx="30" cy="80" rx="18" ry="10" fill="#c9a0a0" transform="rotate(-30 30 80)"/>
@@ -591,7 +688,7 @@
   </g>
 </svg>
 
-<!-- SCREEN 1: WELCOME -->
+<!-- SCREENS -->
 <div class="screen active" id="screen-welcome">
   <div class="divider" style="margin-bottom:0">
     <div class="divider-line"></div>
@@ -614,13 +711,18 @@
   </p>
   <button class="btn-primary" onclick="goTo('screen-name')">Leave a Message</button>
   <button class="btn-secondary" onclick="goTo('screen-pin')">View Messages</button>
-  <button class="music-btn" id="music-btn" onclick="toggleMusic()" title="Toggle music">🎵</button>
+  <div class="control-buttons">
+    <div class="control-buttons-row">
+      <button class="music-btn" id="music-btn" onclick="toggleMusic()" title="Toggle music">🎵</button>
+      <button class="fullscreen-btn" id="fullscreen-btn" onclick="toggleFullscreen()" title="Toggle fullscreen">⛶</button>
+    </div>
+    <div class="music-hint" id="music-hint">Click anywhere to start music</div>
+  </div>
 </div>
 
-<!-- SCREEN 2: NAME INPUT -->
 <div class="screen" id="screen-name">
-  <p class="title" style="font-family:'Cinzel',serif; font-size:clamp(18px,4.5vw,26px); color:var(--brown); text-align:center; letter-spacing:0.1em">Who are you?</p>
-  <p style="font-family:'IM Fell English',serif; font-style:italic; font-size:clamp(13px,3vw,16px); color:var(--text-light); text-align:center; margin-bottom:28px">Tell the couple your name</p>
+  <p class="title">Who are you?</p>
+  <p class="subtitle">Tell the couple your name</p>
   <div class="input-wrap">
     <input type="text" id="guest-name" placeholder="Your name..." maxlength="40" autocomplete="off"/>
   </div>
@@ -628,50 +730,65 @@
   <button class="btn-secondary" style="margin-top:10px" onclick="goTo('screen-welcome')">← Back</button>
 </div>
 
-<!-- SCREEN 3: RECORD -->
 <div class="screen" id="screen-record">
   <p class="guest-greeting" id="guest-greeting">Dear guest,</p>
   <p class="record-title">Record Your Message</p>
 
-  <div class="video-frame">
-    <video id="preview-video" autoplay muted playsinline></video>
-    <div class="rec-indicator" id="rec-indicator">
-      <div class="rec-dot"></div> REC
+  <div class="record-layout">
+    <!-- Left side: Video -->
+    <div class="video-section">
+      <div class="video-frame">
+        <video id="preview-video" autoplay muted playsinline></video>
+        <div class="rec-indicator" id="rec-indicator">
+          <div class="rec-dot"></div> REC
+        </div>
+      </div>
+    </div>
+
+    <!-- Right side: Controls -->
+    <div class="controls-section">
+      <div class="timer-ring" id="timer-ring" style="display:none">
+        <svg width="80" height="80" viewBox="0 0 80 80">
+          <circle cx="40" cy="40" r="34" fill="none" stroke="#e8d0d0" stroke-width="5"/>
+          <circle id="timer-circle" cx="40" cy="40" r="34" fill="none" stroke="#9e6b6b" stroke-width="5"
+            stroke-dasharray="213.6" stroke-dashoffset="0" stroke-linecap="round"/>
+        </svg>
+        <div class="timer-text" id="timer-text">60</div>
+      </div>
+      <p class="timer-hint" id="timer-hint" style="display:none">seconds remaining</p>
+
+      <div class="record-controls">
+        <button class="btn-record" id="btn-record" onclick="toggleRecord()">
+          <div class="inner"></div>
+        </button>
+        <span class="record-label" id="record-label">Tap to Record</span>
+      </div>
+
+      <button class="btn-secondary" style="margin-top:14px" onclick="stopAndBack()">← Back</button>
     </div>
   </div>
-
-  <div class="timer-ring" id="timer-ring" style="display:none">
-    <svg width="80" height="80" viewBox="0 0 80 80">
-      <circle cx="40" cy="40" r="34" fill="none" stroke="#e8d0d0" stroke-width="5"/>
-      <circle id="timer-circle" cx="40" cy="40" r="34" fill="none" stroke="#9e6b6b" stroke-width="5"
-        stroke-dasharray="213.6" stroke-dashoffset="0" stroke-linecap="round"/>
-    </svg>
-    <div class="timer-text" id="timer-text">60</div>
-  </div>
-  <p class="timer-hint" id="timer-hint" style="display:none">seconds remaining</p>
-
-  <div class="record-controls">
-    <button class="btn-record" id="btn-record" onclick="toggleRecord()">
-      <div class="inner"></div>
-    </button>
-    <span class="record-label" id="record-label">Tap to Record</span>
-  </div>
-
-  <button class="btn-secondary" style="margin-top:14px" onclick="stopAndBack()">← Back</button>
 </div>
 
-<!-- SCREEN 4: REVIEW -->
 <div class="screen" id="screen-review">
   <p class="review-title">Review Your Message</p>
   <p class="review-sub">Happy with it? Save it for Hakeem &amp; Arina 💕</p>
-  <div class="playback-wrap"><video id="playback-video" controls playsinline></video></div>
-  <div class="review-btns">
-    <button class="btn-primary" onclick="saveVideo()">Save Message 💾</button>
-    <button class="btn-secondary" onclick="retakeVideo()">Retake</button>
+  
+  <div class="review-layout">
+    <!-- Left side: Video playback -->
+    <div class="playback-section">
+      <div class="playback-wrap">
+        <video id="playback-video" controls playsinline></video>
+      </div>
+    </div>
+
+    <!-- Right side: Action buttons -->
+    <div class="review-controls-section">
+      <button class="btn-primary" onclick="saveVideo()">Save Message 💾</button>
+      <button class="btn-secondary" onclick="retakeVideo()">Retake</button>
+    </div>
   </div>
 </div>
 
-<!-- SCREEN 5: SAVED -->
 <div class="screen" id="screen-saved">
   <div class="saved-icon">🌸</div>
   <p class="saved-title">Thank You!</p>
@@ -684,7 +801,6 @@
   <button class="btn-primary" style="margin-top:28px" onclick="goTo('screen-welcome')">Done</button>
 </div>
 
-<!-- SCREEN PIN: Password for gallery -->
 <div class="screen" id="screen-pin">
   <p class="pin-title">Private Gallery</p>
   <p class="pin-sub">Enter the password to view messages</p>
@@ -714,14 +830,155 @@
   <button class="btn-secondary" style="margin-top:16px" onclick="goTo('screen-welcome')">← Back</button>
 </div>
 
-<!-- SCREEN 6: GALLERY -->
 <div class="screen" id="screen-gallery">
   <button class="btn-back-gallery" onclick="goTo('screen-welcome')">← Back</button>
   <p class="gallery-title">Messages for the Couple 💕</p>
   <div class="gallery-grid" id="gallery-grid"></div>
 </div>
 
+<div class="db-status" id="db-status" style="display:none">📁 Database Ready</div>
+
 <script>
+  // ====== INDEXEDDB SETUP ======
+  let db = null;
+  const DB_NAME = 'GuestbookDB';
+  const DB_VERSION = 1;
+  const STORE_NAME = 'messages';
+  
+  // ====== PAGINATION SETUP ======
+  let currentPage = 1;
+  const VIDEOS_PER_PAGE = 20; // Adjust based on device performance
+
+  async function initDB() {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(DB_NAME, DB_VERSION);
+      
+      request.onerror = () => {
+        console.error('DB Error:', request.error);
+        showDBStatus('Database Error', false);
+        reject(request.error);
+      };
+      
+      request.onsuccess = () => {
+        db = request.result;
+        console.log('Database initialized successfully');
+        showDBStatus('Database Ready', true);
+        resolve(db);
+      };
+      
+      request.onupgradeneeded = (event) => {
+        const database = event.target.result;
+        
+        if (!database.objectStoreNames.contains(STORE_NAME)) {
+          const store = database.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+          store.createIndex('timestamp', 'timestamp', { unique: false });
+          console.log('Object Store created');
+        }
+      };
+    });
+  }
+
+  function showDBStatus(msg, success) {
+    const status = document.getElementById('db-status');
+    status.textContent = '📁 ' + msg;
+    status.classList.toggle('success', success);
+    status.classList.toggle('error', !success);
+    status.style.display = 'block';
+    setTimeout(() => { status.style.display = 'none'; }, 3000);
+  }
+
+  async function saveMessageToDB(name, blob, mimeType) {
+    if (!db) {
+      console.error('Database not initialized');
+      showDBStatus('DB Not Ready', false);
+      return false;
+    }
+
+    return new Promise((resolve) => {
+      const transaction = db.transaction([STORE_NAME], 'readwrite');
+      const store = transaction.objectStore(STORE_NAME);
+      
+      // Ensure blob is a proper Blob object
+      let blobToSave = blob;
+      if (!(blob instanceof Blob)) {
+        console.error('Input is not a Blob:', typeof blob);
+        showDBStatus('Blob Error', false);
+        resolve(false);
+        return;
+      }
+
+      console.log('Saving blob - Size:', blob.size, 'Type:', mimeType);
+      
+      const message = {
+        name: name,
+        timestamp: new Date().toISOString(),
+        dateStr: new Date().toLocaleDateString('en-MY', { day: 'numeric', month: 'long', year: 'numeric' }),
+        blob: blobToSave,
+        mimeType: mimeType
+      };
+      
+      const request = store.add(message);
+      
+      request.onsuccess = () => {
+        console.log('✅ Message saved to DB with ID:', request.result);
+        console.log('   Guest:', name, '| Size:', blob.size, 'bytes');
+        showDBStatus('Message Saved ✓', true);
+        
+        // Verify it was saved
+        verifyMessageSaved(request.result);
+        resolve(true);
+      };
+      
+      request.onerror = () => {
+        console.error('❌ Error saving message:', request.error);
+        showDBStatus('Save Failed', false);
+        resolve(false);
+      };
+    });
+  }
+
+  async function verifyMessageSaved(id) {
+    return new Promise((resolve) => {
+      const transaction = db.transaction([STORE_NAME], 'readonly');
+      const store = transaction.objectStore(STORE_NAME);
+      const request = store.get(id);
+      
+      request.onsuccess = () => {
+        const msg = request.result;
+        if (msg) {
+          console.log('✅ Verification: Message ID', id, 'found in DB');
+          console.log('   Name:', msg.name, '| Blob size:', msg.blob.size, '| Type:', msg.mimeType);
+        } else {
+          console.warn('⚠️ Verification: Message ID', id, 'NOT found after save!');
+        }
+        resolve(msg);
+      };
+    });
+  }
+
+  async function getAllMessages() {
+    if (!db) return [];
+
+    return new Promise((resolve) => {
+      const transaction = db.transaction([STORE_NAME], 'readonly');
+      const store = transaction.objectStore(STORE_NAME);
+      const request = store.getAll();
+      
+      request.onsuccess = () => {
+        const messages = request.result.sort((a, b) => 
+          new Date(b.timestamp) - new Date(a.timestamp)
+        );
+        resolve(messages);
+      };
+      
+      request.onerror = () => {
+        console.error('Error fetching messages:', request.error);
+        resolve([]);
+      };
+    });
+  }
+
+  // ====== RECORDING LOGIC ======
   let stream = null;
   let mediaRecorder = null;
   let recordedChunks = [];
@@ -730,12 +987,16 @@
   let seconds = 60;
   let isRecording = false;
   let guestName = '';
-  let savedMessages = [];
 
   function goTo(screenId) {
+    // Start music on first interaction if not already playing
+    if (!musicReady && !musicMuted) {
+      initMusic();
+    }
+    
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(screenId).classList.add('active');
-    if (screenId === 'screen-gallery') renderGallery();
+    if (screenId === 'screen-gallery') renderGallery(currentPage);
     handleMusicForScreen(screenId);
   }
 
@@ -770,7 +1031,6 @@
     recordedChunks = [];
     isRecording = true;
 
-    // Try mp4 first (iOS Safari), then webm (Android Chrome)
     let options = {};
     if (MediaRecorder.isTypeSupported('video/mp4;codecs=h264,aac')) {
       options = { mimeType: 'video/mp4;codecs=h264,aac' };
@@ -835,24 +1095,20 @@
     goTo('screen-record');
   }
 
-  function saveVideo() {
+  async function saveVideo() {
     if (!recordedBlob) return;
-    const objectUrl = URL.createObjectURL(recordedBlob);
-    const dateStr = new Date().toLocaleDateString('en-MY', { day: 'numeric', month: 'long', year: 'numeric' });
-    savedMessages.push({ name: guestName, date: dateStr, url: objectUrl });
-    // Use correct extension based on actual recorded format
-    const mimeUsed = recordedBlob.type || '';
-    const ext = mimeUsed.includes('mp4') ? 'mp4' : 'webm';
-    const a = document.createElement('a');
-    a.href = objectUrl;
-    a.download = 'message_from_' + guestName.replace(/ /g, '_') + '.' + ext;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    document.getElementById('saved-msg').innerHTML = 'Saved! Hakeem & Arina will cherish your message forever';
-    document.getElementById('guest-name').value = '';
-    if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
-    goTo('screen-saved');
+    
+    const mimeType = recordedBlob.type || 'video/webm';
+    const saved = await saveMessageToDB(guestName, recordedBlob, mimeType);
+    
+    if (saved) {
+      document.getElementById('saved-msg').innerHTML = 'Saved! Hakeem & Arina will cherish your message forever';
+      document.getElementById('guest-name').value = '';
+      if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+      goTo('screen-saved');
+    } else {
+      alert('Error saving message. Please try again.');
+    }
   }
 
   function stopAndBack() {
@@ -861,8 +1117,7 @@
     goTo('screen-welcome');
   }
 
-
-  // ── PIN LOGIC ──
+  // ====== PIN LOGIC ======
   const CORRECT_PIN = '112233';
   let pinEntry = '';
 
@@ -897,7 +1152,6 @@
     } else {
       document.getElementById('pin-error').textContent = 'Incorrect password. Try again.';
       pinEntry = '';
-      // Shake animation
       const dots = document.getElementById('pin-dots');
       dots.style.animation = 'shake 0.4s ease';
       setTimeout(() => { dots.style.animation = ''; }, 400);
@@ -905,77 +1159,384 @@
     }
   }
 
-  function renderGallery() {
+  async function renderGallery(page = 1) {
     const grid = document.getElementById('gallery-grid');
-    grid.innerHTML = '';
-    if (savedMessages.length === 0) {
+    grid.innerHTML = '<p style="grid-column:1/-1; text-align:center; color:var(--text-light)">Loading messages...</p>';
+    
+    const allMessages = await getAllMessages();
+    
+    if (allMessages.length === 0) {
       grid.innerHTML = '<p class="empty-gallery" style="grid-column:1/-1">No messages yet.<br>Be the first to leave one! 🌸</p>';
       return;
     }
-    savedMessages.forEach(function(msg) {
+    
+    // Calculate pagination
+    const totalPages = Math.ceil(allMessages.length / VIDEOS_PER_PAGE);
+    const startIndex = (page - 1) * VIDEOS_PER_PAGE;
+    const endIndex = startIndex + VIDEOS_PER_PAGE;
+    const messages = allMessages.slice(startIndex, endIndex);
+    
+    grid.innerHTML = '';
+    
+    // Show page info
+    const pageInfo = document.createElement('div');
+    pageInfo.style.cssText = 'grid-column:1/-1; text-align:center; font-family:"IM Fell English",serif; font-style:italic; color:var(--text-light); margin-bottom:16px; font-size:14px;';
+    pageInfo.innerHTML = `Showing ${startIndex + 1}-${Math.min(endIndex, allMessages.length)} of ${allMessages.length} messages`;
+    grid.appendChild(pageInfo);
+    
+    // Render videos for current page only
+    for (const msg of messages) {
       const div = document.createElement('div');
       div.className = 'gallery-item';
+      
       const video = document.createElement('video');
-      video.src = msg.url;
+      
+      // Create object URL from the blob stored in IndexedDB
+      if (msg.blob instanceof Blob) {
+        const url = URL.createObjectURL(msg.blob);
+        video.src = url;
+        console.log('Loaded video', startIndex + messages.indexOf(msg) + 1, 'of', allMessages.length);
+      } else {
+        console.warn('Message blob is not a Blob:', msg.name);
+      }
+      
       video.setAttribute('playsinline', '');
       video.setAttribute('preload', 'metadata');
       video.setAttribute('controls', '');
       video.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+      
       const label = document.createElement('div');
       label.className = 'guest-label';
-      label.innerHTML = msg.name + '<br><span style="font-size:10px;opacity:0.7">' + msg.date + '</span>';
+      label.innerHTML = msg.name + '<br><span style="font-size:10px;opacity:0.7">' + msg.dateStr + '</span>';
+      
       div.appendChild(video);
       div.appendChild(label);
       grid.appendChild(div);
+    }
+    
+    // Add pagination controls if more than one page
+    if (totalPages > 1) {
+      const paginationDiv = document.createElement('div');
+      paginationDiv.style.cssText = 'grid-column:1/-1; display:flex; justify-content:center; gap:10px; margin-top:30px; margin-bottom:20px; flex-wrap:wrap; align-items:center;';
+      
+      // Previous button
+      if (page > 1) {
+        const prevBtn = document.createElement('button');
+        prevBtn.textContent = '← Prev';
+        prevBtn.className = 'btn-secondary';
+        prevBtn.style.cssText = 'margin:0; padding:10px 20px; font-size:13px;';
+        prevBtn.onclick = () => {
+          currentPage = page - 1;
+          renderGallery(currentPage);
+          document.getElementById('screen-gallery').scrollTop = 0;
+        };
+        paginationDiv.appendChild(prevBtn);
+      }
+      
+      // Page numbers (show max 5 page buttons)
+      const maxButtons = 5;
+      let startPage = Math.max(1, page - Math.floor(maxButtons / 2));
+      let endPage = Math.min(totalPages, startPage + maxButtons - 1);
+      
+      // Adjust start if at end
+      if (endPage - startPage < maxButtons - 1) {
+        startPage = Math.max(1, endPage - maxButtons + 1);
+      }
+      
+      // Show first page if not in range
+      if (startPage > 1) {
+        const firstBtn = document.createElement('button');
+        firstBtn.textContent = '1';
+        firstBtn.className = 'btn-secondary';
+        firstBtn.style.cssText = 'margin:0; padding:10px 16px; min-width:40px; font-size:13px;';
+        firstBtn.onclick = () => {
+          currentPage = 1;
+          renderGallery(1);
+          document.getElementById('screen-gallery').scrollTop = 0;
+        };
+        paginationDiv.appendChild(firstBtn);
+        
+        if (startPage > 2) {
+          const dots = document.createElement('span');
+          dots.textContent = '...';
+          dots.style.cssText = 'color:var(--text-light); padding:0 5px;';
+          paginationDiv.appendChild(dots);
+        }
+      }
+      
+      // Page number buttons
+      for (let i = startPage; i <= endPage; i++) {
+        const pageBtn = document.createElement('button');
+        pageBtn.textContent = i;
+        pageBtn.className = i === page ? 'btn-primary' : 'btn-secondary';
+        pageBtn.style.cssText = 'margin:0; padding:10px 16px; min-width:40px; font-size:13px;';
+        if (i === page) {
+          pageBtn.style.cssText += ' font-weight:bold;';
+        }
+        pageBtn.onclick = () => {
+          currentPage = i;
+          renderGallery(currentPage);
+          document.getElementById('screen-gallery').scrollTop = 0;
+        };
+        paginationDiv.appendChild(pageBtn);
+      }
+      
+      // Show last page if not in range
+      if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+          const dots = document.createElement('span');
+          dots.textContent = '...';
+          dots.style.cssText = 'color:var(--text-light); padding:0 5px;';
+          paginationDiv.appendChild(dots);
+        }
+        
+        const lastBtn = document.createElement('button');
+        lastBtn.textContent = totalPages;
+        lastBtn.className = 'btn-secondary';
+        lastBtn.style.cssText = 'margin:0; padding:10px 16px; min-width:40px; font-size:13px;';
+        lastBtn.onclick = () => {
+          currentPage = totalPages;
+          renderGallery(totalPages);
+          document.getElementById('screen-gallery').scrollTop = 0;
+        };
+        paginationDiv.appendChild(lastBtn);
+      }
+      
+      // Next button
+      if (page < totalPages) {
+        const nextBtn = document.createElement('button');
+        nextBtn.textContent = 'Next →';
+        nextBtn.className = 'btn-secondary';
+        nextBtn.style.cssText = 'margin:0; padding:10px 20px; font-size:13px;';
+        nextBtn.onclick = () => {
+          currentPage = page + 1;
+          renderGallery(currentPage);
+          document.getElementById('screen-gallery').scrollTop = 0;
+        };
+        paginationDiv.appendChild(nextBtn);
+      }
+      
+      grid.appendChild(paginationDiv);
+    }
+    
+    console.log(`📄 Loaded page ${page}/${totalPages} (${messages.length} videos)`);
+  }
+
+  // ====== MUSIC CONTROL ======
+  let musicMuted = false;
+  let bgMusic = null;
+  let musicReady = false;
+
+  // Initialize music
+  function initMusic() {
+    if (musicReady) return;
+    
+    bgMusic = document.getElementById('bg-music');
+    if (!bgMusic) return;
+    
+    bgMusic.volume = 0.3; // 30% volume (adjust as needed)
+    
+    // Try to play (may be blocked by browser until user interacts)
+    bgMusic.play().then(() => {
+      console.log('🎵 Music started');
+      musicReady = true;
+    }).catch(() => {
+      console.log('🎵 Music autoplay blocked - will start on first click');
     });
   }
-</script>
-
-<!-- YouTube background music - Bergema Sampai Selamanya -->
-<iframe id="yt-player"
-  src="https://www.youtube.com/embed/gvunApwKIiY?autoplay=1&loop=1&playlist=gvunApwKIiY&controls=0&mute=0&enablejsapi=1"
-  style="position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;top:-9999px"
-  allow="autoplay"
-  frameborder="0">
-</iframe>
-
-
-
-<script>
-  let musicMuted = false;
 
   function toggleMusic() {
-    const iframe = document.getElementById('yt-player');
     const btn = document.getElementById('music-btn');
+    
+    if (!bgMusic) {
+      bgMusic = document.getElementById('bg-music');
+    }
+    
+    if (!bgMusic) return;
+
     musicMuted = !musicMuted;
 
     if (musicMuted) {
-      // Mute by reloading iframe with mute=1
-      iframe.src = iframe.src.replace('mute=0', 'mute=1').replace('mute=1&mute=1', 'mute=1');
+      bgMusic.pause();
       btn.textContent = '🔇';
       btn.classList.add('muted');
     } else {
-      iframe.src = iframe.src.replace('mute=1', 'mute=0');
+      bgMusic.play().catch(err => console.log('Play blocked:', err));
       btn.textContent = '🎵';
       btn.classList.remove('muted');
     }
   }
 
-  // Music only plays on welcome screen
   function handleMusicForScreen(screenId) {
-    if (musicMuted) return;
-    const iframe = document.getElementById('yt-player');
-    if (!iframe) return;
-    const src = iframe.src;
+    if (!bgMusic || musicMuted) return;
+    
     if (screenId === 'screen-welcome') {
-      // Unmute on welcome screen
-      if (src.includes('mute=1')) iframe.src = src.replace('mute=1', 'mute=0');
+      // Play on welcome screen
+      if (bgMusic.paused) {
+        bgMusic.play().catch(err => console.log('Play blocked:', err));
+      }
+    } else if (screenId === 'screen-name') {
+      // Keep playing on name input screen (don't stop yet)
+      if (bgMusic.paused && !musicMuted) {
+        bgMusic.play().catch(err => console.log('Play blocked:', err));
+      }
     } else {
-      // Mute on all other screens
-      if (src.includes('mute=0')) iframe.src = src.replace('mute=0', 'mute=1');
+      // Pause on all other screens (after clicking Continue from name screen)
+      if (!bgMusic.paused) {
+        bgMusic.pause();
+      }
     }
   }
+
+  // Start music on first user interaction (required by browser autoplay policy)
+  document.addEventListener('click', () => {
+    if (!musicReady && !musicMuted) {
+      initMusic();
+    }
+  }, { once: true });
+
+  // Try to start on page load (may be blocked)
+  window.addEventListener('load', () => {
+    setTimeout(initMusic, 100);
+  });
+
+  // ====== FULLSCREEN CONTROL ======
+  function toggleFullscreen() {
+    const btn = document.getElementById('fullscreen-btn');
+    
+    if (!document.fullscreenElement) {
+      // Enter fullscreen
+      document.documentElement.requestFullscreen().then(() => {
+        btn.textContent = '⛶'; // Exit fullscreen icon
+        console.log('Entered fullscreen mode');
+      }).catch((err) => {
+        console.error('Error entering fullscreen:', err);
+        alert('Fullscreen not supported or blocked by browser');
+      });
+    } else {
+      // Exit fullscreen
+      document.exitFullscreen().then(() => {
+        btn.textContent = '⛶'; // Enter fullscreen icon
+        console.log('Exited fullscreen mode');
+      }).catch((err) => {
+        console.error('Error exiting fullscreen:', err);
+      });
+    }
+  }
+
+  // Update fullscreen button icon when fullscreen changes
+  document.addEventListener('fullscreenchange', () => {
+    const btn = document.getElementById('fullscreen-btn');
+    if (btn) {
+      btn.textContent = document.fullscreenElement ? '⛶' : '⛶';
+    }
+  });
+
+  // ====== INITIALIZE ON PAGE LOAD ======
+  window.addEventListener('load', async () => {
+    console.log('🔄 Page loaded, initializing database...');
+    await initDB();
+    logDatabaseStatus();
+  });
+
+  // ====== DEBUG FUNCTIONS ======
+  async function logDatabaseStatus() {
+    console.log('='.repeat(60));
+    console.log('DATABASE STATUS REPORT');
+    console.log('='.repeat(60));
+    
+    if (!db) {
+      console.log('❌ Database not initialized');
+      return;
+    }
+    
+    const transaction = db.transaction([STORE_NAME], 'readonly');
+    const store = transaction.objectStore(STORE_NAME);
+    const countRequest = store.count();
+    
+    countRequest.onsuccess = () => {
+      console.log(`✅ Database: GuestbookDB`);
+      console.log(`✅ Object Store: ${STORE_NAME}`);
+      console.log(`📊 Total messages: ${countRequest.result}`);
+      
+      const getAllRequest = store.getAll();
+      getAllRequest.onsuccess = () => {
+        const messages = getAllRequest.result;
+        let totalSize = 0;
+        
+        console.log('\n📋 Stored Messages:');
+        messages.forEach((msg, i) => {
+          console.log(`  ${i + 1}. ${msg.name} (${msg.dateStr})`);
+          console.log(`     └─ Size: ${(msg.blob.size / 1024).toFixed(2)} KB | Type: ${msg.mimeType}`);
+          totalSize += msg.blob.size;
+        });
+        
+        console.log(`\n💾 Total storage used: ${(totalSize / 1024 / 1024).toFixed(2)} MB`);
+        console.log('='.repeat(60));
+      };
+    };
+  }
+
+  // Make these available globally for debugging
+  window.dbDebug = {
+    status: logDatabaseStatus,
+    getAllMessages: getAllMessages,
+    showAllData: async () => {
+      const msgs = await getAllMessages();
+      console.table(msgs.map(m => ({
+        name: m.name,
+        date: m.dateStr,
+        size_kb: (m.blob.size / 1024).toFixed(2),
+        type: m.mimeType
+      })));
+    },
+    clearDatabase: async () => {
+      if (!confirm('Clear ALL messages?')) return;
+      const transaction = db.transaction([STORE_NAME], 'readwrite');
+      const store = transaction.objectStore(STORE_NAME);
+      const request = store.clear();
+      request.onsuccess = () => {
+        console.log('✅ Database cleared');
+        location.reload();
+      };
+    },
+    exportAllVideos: async () => {
+      const messages = await getAllMessages();
+      console.log(`📥 Starting export of ${messages.length} videos...`);
+      
+      for (let i = 0; i < messages.length; i++) {
+        const msg = messages[i];
+        const url = URL.createObjectURL(msg.blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const ext = msg.mimeType.includes('mp4') ? 'mp4' : 'webm';
+        a.download = `${i + 1}_${msg.name.replace(/ /g, '_')}_${msg.dateStr.replace(/ /g, '_')}.${ext}`;
+        
+        // Stagger downloads
+        setTimeout(() => {
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          console.log(`📥 Downloaded: ${a.download}`);
+        }, i * 500);
+      }
+    }
+  };
+
+  // Log availability
+  console.log('💡 For debugging, open console and use:');
+  console.log('   dbDebug.status()       - Show database status');
+  console.log('   dbDebug.showAllData()  - List all messages');
+  console.log('   dbDebug.exportAllVideos() - Download all videos');
+  console.log('   dbDebug.clearDatabase() - Wipe database');
 </script>
+
+<!-- Background music - Local audio file (place MP3 in same folder) -->
+<audio id="bg-music" loop preload="auto">
+  <source src="bergema-sampai-selamanya.mp3" type="audio/mpeg">
+  Your browser does not support audio playback.
+</audio>
 
 </body>
 </html>
