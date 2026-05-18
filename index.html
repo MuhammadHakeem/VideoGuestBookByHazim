@@ -678,6 +678,18 @@
   }
   .db-status.success { color: #27ae60; }
   .db-status.error { color: #c0392b; }
+  
+  .device-info {
+    position: fixed; bottom: 20px; left: 20px;
+    font-family: 'Cinzel', serif;
+    font-size: 10px;
+    padding: 6px 10px;
+    background: rgba(255,255,255,0.8);
+    border: 1px solid var(--gold);
+    border-radius: 15px;
+    color: var(--text-light);
+    z-index: 5;
+  }
 </style>
 </head>
 <body>
@@ -814,7 +826,7 @@
     <!-- Left side: Video -->
     <div class="video-section">
       <div class="video-frame">
-        <video id="preview-video" autoplay muted playsinline></video>
+        <video id="preview-video" autoplay muted playsinline webkit-playsinline></video>
         <div class="rec-indicator" id="rec-indicator">
           <div class="rec-dot"></div> REC
         </div>
@@ -921,8 +933,21 @@
 </div>
 
 <div class="db-status" id="db-status" style="display:none">📁 Database Ready</div>
+<div class="device-info" id="device-info"></div>
 
 <script>
+  // ====== DEVICE DETECTION ======
+  const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+  const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
+  const isAndroid = /android/i.test(userAgent);
+  const isMobile = isIOS || isAndroid;
+  
+  console.log('Device Detection:');
+  console.log('  iOS:', isIOS);
+  console.log('  Android:', isAndroid);
+  console.log('  Mobile:', isMobile);
+  console.log('  User Agent:', userAgent);
+
   // ====== INDEXEDDB SETUP ======
   let db = null;
   const DB_NAME = 'GuestbookDB';
@@ -1099,10 +1124,67 @@
 
   async function initCamera() {
     try {
-      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: true });
-      document.getElementById('preview-video').srcObject = stream;
+      console.log('Initializing camera for:', isIOS ? 'iOS' : isAndroid ? 'Android' : 'Desktop');
+      
+      // Platform-specific constraints
+      let constraints = {
+        video: {
+          facingMode: 'user',
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        },
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        }
+      };
+      
+      // iOS-specific adjustments
+      if (isIOS) {
+        constraints.video = {
+          facingMode: 'user',
+          width: { ideal: 640, max: 1280 },
+          height: { ideal: 480, max: 720 }
+        };
+        console.log('Using iOS-optimized settings');
+      }
+      
+      // Android-specific adjustments
+      if (isAndroid) {
+        constraints.video.frameRate = { ideal: 30, max: 30 };
+        console.log('Using Android-optimized settings');
+      }
+      
+      stream = await navigator.mediaDevices.getUserMedia(constraints);
+      const videoElement = document.getElementById('preview-video');
+      videoElement.srcObject = stream;
+      
+      // Explicit play for mobile devices
+      if (isMobile) {
+        await videoElement.play().catch(err => {
+          console.log('Autoplay blocked, will play on user interaction:', err);
+        });
+      }
+      
+      console.log('✅ Camera started successfully');
+      console.log('Stream settings:', stream.getVideoTracks()[0].getSettings());
+      
     } catch(e) {
-      alert('Camera access is required. Please allow camera permissions and try again.');
+      console.error('❌ Camera error:', e);
+      
+      // Platform-specific error messages
+      let errorMsg = 'Camera access is required. ';
+      
+      if (isIOS) {
+        errorMsg += 'Please:\n1. Go to Settings > Safari > Camera\n2. Set to "Allow"\n3. Reload this page';
+      } else if (isAndroid) {
+        errorMsg += 'Please:\n1. Go to Settings > Apps > Browser\n2. Enable Camera permission\n3. Reload this page';
+      } else {
+        errorMsg += 'Please allow camera permissions and try again.';
+      }
+      
+      alert(errorMsg);
     }
   }
 
@@ -1116,16 +1198,39 @@
     recordedChunks = [];
     isRecording = true;
 
+    // Platform-specific codec selection
     let options = {};
-    if (MediaRecorder.isTypeSupported('video/mp4;codecs=h264,aac')) {
-      options = { mimeType: 'video/mp4;codecs=h264,aac' };
-    } else if (MediaRecorder.isTypeSupported('video/mp4')) {
-      options = { mimeType: 'video/mp4' };
-    } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) {
-      options = { mimeType: 'video/webm;codecs=vp9' };
-    } else if (MediaRecorder.isTypeSupported('video/webm')) {
-      options = { mimeType: 'video/webm' };
+    
+    if (isIOS) {
+      // iOS Safari prefers mp4
+      if (MediaRecorder.isTypeSupported('video/mp4')) {
+        options = { mimeType: 'video/mp4' };
+        console.log('Using video/mp4 for iOS');
+      } else if (MediaRecorder.isTypeSupported('video/mp4;codecs=h264,aac')) {
+        options = { mimeType: 'video/mp4;codecs=h264,aac' };
+        console.log('Using video/mp4 with h264,aac for iOS');
+      }
+    } else if (isAndroid) {
+      // Android Chrome prefers webm
+      if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')) {
+        options = { mimeType: 'video/webm;codecs=vp8,opus' };
+        console.log('Using video/webm with vp8,opus for Android');
+      } else if (MediaRecorder.isTypeSupported('video/webm')) {
+        options = { mimeType: 'video/webm' };
+        console.log('Using video/webm for Android');
+      }
+    } else {
+      // Desktop - try best quality first
+      if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) {
+        options = { mimeType: 'video/webm;codecs=vp9' };
+      } else if (MediaRecorder.isTypeSupported('video/webm')) {
+        options = { mimeType: 'video/webm' };
+      } else if (MediaRecorder.isTypeSupported('video/mp4')) {
+        options = { mimeType: 'video/mp4' };
+      }
     }
+
+    console.log('Recording with options:', options);
 
     mediaRecorder = new MediaRecorder(stream, options);
     mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
@@ -1667,6 +1772,16 @@
     console.log('🔄 Page loaded, initializing database...');
     await initDB();
     logDatabaseStatus();
+    
+    // Display device info
+    const deviceInfo = document.getElementById('device-info');
+    let deviceType = 'Desktop';
+    if (isIOS) deviceType = '📱 iOS';
+    else if (isAndroid) deviceType = '📱 Android';
+    else deviceType = '💻 Desktop';
+    
+    deviceInfo.textContent = deviceType;
+    deviceInfo.title = userAgent;
   });
 
   // ====== DEBUG FUNCTIONS ======
