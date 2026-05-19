@@ -237,6 +237,9 @@
   .video-frame video {
     width: 100%; height: 100%;
     object-fit: cover;
+  }
+  /* Only mirror the preview video, not playback */
+  #preview-video {
     transform: scaleX(-1);
   }
   .video-frame .rec-indicator {
@@ -1188,9 +1191,10 @@
   let recordedChunks = [];
   let recordedBlob = null;
   let timerInterval = null;
-  let seconds = 10;
+  let seconds = 60;
   let isRecording = false;
   let guestName = '';
+  let canvasStream = null; // For un-mirrored recording
 
   function goTo(screenId) {
     // Start music on first interaction if not already playing
@@ -1292,11 +1296,45 @@
     recordedChunks = [];
     isRecording = true;
 
+    // Create canvas to flip video horizontally for recording
+    const videoEl = document.getElementById('preview-video');
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Set canvas size to match video
+    canvas.width = videoEl.videoWidth || 1280;
+    canvas.height = videoEl.videoHeight || 720;
+    
+    console.log(`Canvas size: ${canvas.width}x${canvas.height}`);
+    
+    // Draw flipped video to canvas continuously
+    let animationId;
+    function drawFrame() {
+      if (!isRecording) return;
+      
+      ctx.save();
+      // Flip horizontally to un-mirror the mirrored preview
+      ctx.scale(-1, 1);
+      ctx.drawImage(videoEl, -canvas.width, 0, canvas.width, canvas.height);
+      ctx.restore();
+      
+      animationId = requestAnimationFrame(drawFrame);
+    }
+    drawFrame();
+    
+    // Get stream from canvas (this will be un-mirrored)
+    canvasStream = canvas.captureStream(30); // 30 FPS
+    
+    // Add audio from original stream
+    const audioTracks = stream.getAudioTracks();
+    if (audioTracks.length > 0) {
+      canvasStream.addTrack(audioTracks[0]);
+    }
+
     // Platform-specific codec selection
     let options = {};
     
     if (isIOS) {
-      // iOS Safari prefers mp4
       if (MediaRecorder.isTypeSupported('video/mp4')) {
         options = { mimeType: 'video/mp4' };
         console.log('Using video/mp4 for iOS');
@@ -1305,7 +1343,6 @@
         console.log('Using video/mp4 with h264,aac for iOS');
       }
     } else if (isAndroid) {
-      // Android Chrome prefers webm
       if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')) {
         options = { mimeType: 'video/webm;codecs=vp8,opus' };
         console.log('Using video/webm with vp8,opus for Android');
@@ -1314,7 +1351,6 @@
         console.log('Using video/webm for Android');
       }
     } else {
-      // Desktop - prioritize MP4 for better compatibility
       if (MediaRecorder.isTypeSupported('video/mp4;codecs=h264,aac')) {
         options = { mimeType: 'video/mp4;codecs=h264,aac' };
         console.log('Using video/mp4 with h264,aac for Desktop');
@@ -1331,10 +1367,19 @@
     }
 
     console.log('Recording with options:', options);
+    console.log('Recording from canvas stream (un-mirrored)');
 
-    mediaRecorder = new MediaRecorder(stream, options);
+    // Record from canvas stream instead of camera stream
+    mediaRecorder = new MediaRecorder(canvasStream, options);
     mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
-    mediaRecorder.onstop = handleRecordingStop;
+    mediaRecorder.onstop = () => {
+      cancelAnimationFrame(animationId);
+      if (canvasStream) {
+        canvasStream.getTracks().forEach(t => t.stop());
+        canvasStream = null;
+      }
+      handleRecordingStop();
+    };
     mediaRecorder.start(100);
 
     document.getElementById('btn-record').classList.add('recording');
@@ -1343,7 +1388,7 @@
     document.getElementById('timer-ring').style.display = 'block';
     document.getElementById('timer-hint').style.display = 'block';
 
-    seconds = 10;
+    seconds = 60;
     updateTimerDisplay();
     timerInterval = setInterval(() => {
       seconds--;
