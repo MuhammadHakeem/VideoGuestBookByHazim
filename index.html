@@ -1191,7 +1191,7 @@
   let recordedChunks = [];
   let recordedBlob = null;
   let timerInterval = null;
-  let seconds = 60;
+  let seconds = 10;
   let isRecording = false;
   let guestName = '';
   let canvasStream = null; // For un-mirrored recording
@@ -1388,7 +1388,7 @@
     document.getElementById('timer-ring').style.display = 'block';
     document.getElementById('timer-hint').style.display = 'block';
 
-    seconds = 60;
+    seconds = 10;
     updateTimerDisplay();
     timerInterval = setInterval(() => {
       seconds--;
@@ -1400,7 +1400,7 @@
   function updateTimerDisplay() {
     document.getElementById('timer-text').textContent = seconds;
     const circumference = 213.6;
-    const offset = circumference * (1 - seconds / 60);
+    const offset = circumference * (1 - seconds / 10);
     document.getElementById('timer-circle').style.strokeDashoffset = offset;
   }
 
