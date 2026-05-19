@@ -441,17 +441,21 @@
     max-width: 90%;
   }
 
-  /* Mobile adjustments */
+  /* Mobile adjustments - fixed below title */
   @media (max-width: 768px) {
     .gallery-actions {
-      top: 135px;
+      position: static;
+      transform: none;
+      margin: 0 auto 16px;
+      width: 100%;
+      max-width: 100%;
       gap: 5px;
-      padding: 6px 10px;
-      font-size: 10px;
+      padding: 8px 12px;
+      border-radius: 12px;
     }
     
     .action-btn {
-      padding: 5px 10px;
+      padding: 6px 10px;
       font-size: 9px;
       white-space: nowrap;
     }
@@ -459,6 +463,9 @@
     #selection-count {
       font-size: 9px;
       padding: 0 4px;
+      width: 100%;
+      text-align: center;
+      order: 3;
     }
   }
 
@@ -987,31 +994,92 @@
 
   async function initDB() {
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open(DB_NAME, DB_VERSION);
+      // First, check if we need to delete old database
+      const checkRequest = indexedDB.open(DB_NAME);
       
-      request.onerror = () => {
-        console.error('DB Error:', request.error);
-        showDBStatus('Database Error', false);
-        reject(request.error);
-      };
-      
-      request.onsuccess = () => {
-        db = request.result;
-        console.log('Database initialized successfully');
-        showDBStatus('Database Ready', true);
-        resolve(db);
-      };
-      
-      request.onupgradeneeded = (event) => {
-        const database = event.target.result;
+      checkRequest.onsuccess = () => {
+        const checkDb = checkRequest.result;
+        const hasStore = checkDb.objectStoreNames.contains(STORE_NAME);
+        checkDb.close();
         
-        if (!database.objectStoreNames.contains(STORE_NAME)) {
-          const store = database.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
-          store.createIndex('timestamp', 'timestamp', { unique: false });
-          console.log('Object Store created');
+        if (!hasStore) {
+          console.log('⚠️ Database exists but missing object store. Deleting and recreating...');
+          const deleteRequest = indexedDB.deleteDatabase(DB_NAME);
+          
+          deleteRequest.onsuccess = () => {
+            console.log('✅ Old database deleted');
+            openDatabase(resolve, reject);
+          };
+          
+          deleteRequest.onerror = () => {
+            console.error('❌ Error deleting database');
+            openDatabase(resolve, reject); // Try anyway
+          };
+        } else {
+          // Database is good, just use it
+          openDatabase(resolve, reject);
         }
       };
+      
+      checkRequest.onerror = () => {
+        // Database doesn't exist, create it
+        openDatabase(resolve, reject);
+      };
     });
+  }
+  
+  function openDatabase(resolve, reject) {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    
+    request.onerror = () => {
+      console.error('❌ DB Error:', request.error);
+      showDBStatus('Database Error', false);
+      reject(request.error);
+    };
+    
+    request.onsuccess = () => {
+      db = request.result;
+      
+      // Verify object store exists
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        console.error('❌ Database opened but object store missing!');
+        showDBStatus('DB Structure Error', false);
+        
+        // Close and delete, then try again
+        db.close();
+        const deleteRequest = indexedDB.deleteDatabase(DB_NAME);
+        deleteRequest.onsuccess = () => {
+          console.log('🔄 Retrying database creation...');
+          location.reload(); // Reload page to start fresh
+        };
+        reject(new Error('Object store missing'));
+        return;
+      }
+      
+      console.log('✅ Database initialized successfully');
+      console.log('   Object stores:', Array.from(db.objectStoreNames).join(', '));
+      showDBStatus('Database Ready', true);
+      resolve(db);
+    };
+    
+    request.onupgradeneeded = (event) => {
+      const database = event.target.result;
+      
+      console.log('🔧 Database upgrade needed');
+      console.log('   Old version:', event.oldVersion);
+      console.log('   New version:', event.newVersion);
+      
+      // Delete old store if it exists
+      if (database.objectStoreNames.contains(STORE_NAME)) {
+        console.log('⚠️ Deleting old object store');
+        database.deleteObjectStore(STORE_NAME);
+      }
+      
+      // Create new store
+      const store = database.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+      store.createIndex('timestamp', 'timestamp', { unique: false });
+      console.log('✅ Object store created:', STORE_NAME);
+    };
   }
 
   function showDBStatus(msg, success) {
@@ -1120,7 +1188,7 @@
   let recordedChunks = [];
   let recordedBlob = null;
   let timerInterval = null;
-  let seconds = 60;
+  let seconds = 10;
   let isRecording = false;
   let guestName = '';
 
@@ -1877,6 +1945,28 @@
         location.reload();
       };
     },
+    resetDatabase: async () => {
+      if (!confirm('⚠️ RESET DATABASE? This will delete and recreate it.')) return;
+      
+      console.log('🔄 Deleting database...');
+      if (db) {
+        db.close();
+        db = null;
+      }
+      
+      const deleteRequest = indexedDB.deleteDatabase(DB_NAME);
+      
+      deleteRequest.onsuccess = () => {
+        console.log('✅ Database deleted');
+        console.log('🔄 Reloading page...');
+        setTimeout(() => location.reload(), 500);
+      };
+      
+      deleteRequest.onerror = () => {
+        console.error('❌ Error deleting database');
+        location.reload();
+      };
+    },
     exportAllVideos: async () => {
       const messages = await getAllMessages();
       console.log(`📥 Starting export of ${messages.length} videos...`);
@@ -1913,8 +2003,11 @@
 
   // Log availability
   console.log('💡 For debugging, open console and use:');
-  console.log('   dbDebug.status()       - Show database status');
-  console.log('   dbDebug.showAllData()  - List all messages');
+  console.log('   dbDebug.status()         - Show database status');
+  console.log('   dbDebug.showAllData()    - List all messages');
+  console.log('   dbDebug.resetDatabase()  - Delete & recreate database (FIX ERRORS)');
+  console.log('   dbDebug.exportAllVideos() - Download all videos');
+  console.log('   dbDebug.clearDatabase()  - Wipe database');
   console.log('   dbDebug.exportAllVideos() - Download all videos');
   console.log('   dbDebug.clearDatabase() - Wipe database');
 </script>
