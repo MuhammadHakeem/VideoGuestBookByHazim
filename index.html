@@ -585,6 +585,32 @@
     text-transform: uppercase;
   }
 
+  /* ====== FALLING PETALS ====== */
+  #petals-container {
+    position: fixed; inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+    opacity: 1;
+    transition: opacity 0.8s ease;
+  }
+  #petals-container.hidden { opacity: 0; }
+
+  .petal {
+    position: absolute;
+    top: -30px;
+    border-radius: 50% 0 50% 0;
+    opacity: 0;
+    animation: petalFall linear infinite;
+  }
+
+  @keyframes petalFall {
+    0%   { transform: translateY(0)     translateX(0)    rotate(0deg);   opacity: 0; }
+    8%   {                                                                opacity: 0.75; }
+    92%  {                                                                opacity: 0.45; }
+    100% { transform: translateY(110vh) translateX(var(--drift))  rotate(var(--spin)); opacity: 0; }
+  }
+
   .grain {
     position: fixed; inset: 0; z-index: 0;
     pointer-events: none;
@@ -773,6 +799,7 @@
 <body>
 
 <div class="grain"></div>
+<div id="petals-container"></div>
 
 <svg class="floral-corner floral-tl" width="180" height="180" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
   <g opacity="0.9">
@@ -1057,6 +1084,41 @@
     });
   }
 
+  // ====== FALLING PETALS ======
+  function createPetals() {
+    const container = document.getElementById('petals-container');
+    const colors = ['#c9a0a0','#e8d0d0','#a8b5a0','#c4a882','#b8c8b0','#9e6b6b'];
+    const count = 18;
+
+    for (let i = 0; i < count; i++) {
+      const petal = document.createElement('div');
+      petal.className = 'petal';
+
+      const size     = Math.random() * 12 + 7;
+      const left     = Math.random() * 100;
+      const duration = Math.random() * 16 + 14;
+      const delay    = -(Math.random() * duration);
+      const color    = colors[Math.floor(Math.random() * colors.length)];
+      const drift    = (Math.random() - 0.5) * 180;
+      const spin     = (Math.floor(Math.random() * 3) + 1) * 360;
+      const flip     = Math.random() > 0.5 ? '50% 0 50% 0' : '0 50% 0 50%';
+
+      petal.style.cssText = `
+        left: ${left}%;
+        width: ${size}px;
+        height: ${size * 1.3}px;
+        background: ${color};
+        border-radius: ${flip};
+        animation-duration: ${duration}s;
+        animation-delay: ${delay}s;
+        --drift: ${drift}px;
+        --spin: ${spin}deg;
+      `;
+
+      container.appendChild(petal);
+    }
+  }
+
   // ====== DATE FORMATTING ======
   function formatDate(date) {
     const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -1298,15 +1360,15 @@
   let canvasStream = null; // For un-mirrored recording
 
   function goTo(screenId) {
-    // Start music on first interaction if not already playing
-    if (!musicReady && !musicMuted) {
-      initMusic();
-    }
-    
+    if (!musicReady && !musicMuted) initMusic();
+
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(screenId).classList.add('active');
     if (screenId === 'screen-gallery') renderGallery(currentPage);
     handleMusicForScreen(screenId);
+
+    const petals = document.getElementById('petals-container');
+    petals.classList.toggle('hidden', screenId !== 'screen-welcome');
   }
 
   async function startRecordDirect() {
@@ -2052,6 +2114,7 @@
   // ====== INITIALIZE ON PAGE LOAD ======
   window.addEventListener('load', async () => {
     console.log('🔄 Page loaded, initializing database...');
+    createPetals();
     await initDB();
     logDatabaseStatus();
     
