@@ -730,6 +730,44 @@
     color: var(--text-light);
     z-index: 5;
   }
+
+  /* ====== CUSTOM MODAL ====== */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(61,43,31,0.5);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 200;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+  .modal-overlay.show { opacity: 1; pointer-events: all; }
+  .modal-box {
+    background: var(--warm-white);
+    border: 1px solid var(--gold);
+    border-radius: 20px;
+    padding: 32px 28px;
+    max-width: 320px;
+    width: 90%;
+    box-shadow: 0 16px 48px rgba(122,92,74,0.35);
+    text-align: center;
+    transform: scale(0.95);
+    transition: transform 0.25s ease;
+  }
+  .modal-overlay.show .modal-box { transform: scale(1); }
+  .modal-message {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 17px;
+    color: var(--text);
+    margin-bottom: 24px;
+    white-space: pre-line;
+    line-height: 1.65;
+  }
+  .modal-buttons {
+    display: flex; gap: 12px;
+    justify-content: center; flex-wrap: wrap;
+  }
+  .modal-buttons .btn-primary,
+  .modal-buttons .btn-secondary { margin: 0; }
 </style>
 </head>
 <body>
@@ -975,7 +1013,50 @@
 <div class="db-status" id="db-status" style="display:none">📁 Database Ready</div>
 <div class="device-info" id="device-info"></div>
 
+<div class="modal-overlay" id="custom-modal">
+  <div class="modal-box">
+    <p class="modal-message" id="modal-message"></p>
+    <div class="modal-buttons" id="modal-buttons"></div>
+  </div>
+</div>
+
 <script>
+  // ====== CUSTOM MODAL ======
+  function showAlert(message) {
+    return new Promise(resolve => {
+      const modal = document.getElementById('custom-modal');
+      document.getElementById('modal-message').textContent = message;
+      const btns = document.getElementById('modal-buttons');
+      btns.innerHTML = '';
+      const ok = document.createElement('button');
+      ok.className = 'btn-primary';
+      ok.textContent = 'OK';
+      ok.onclick = () => { modal.classList.remove('show'); resolve(); };
+      btns.appendChild(ok);
+      modal.classList.add('show');
+    });
+  }
+
+  function showConfirm(message) {
+    return new Promise(resolve => {
+      const modal = document.getElementById('custom-modal');
+      document.getElementById('modal-message').textContent = message;
+      const btns = document.getElementById('modal-buttons');
+      btns.innerHTML = '';
+      const cancel = document.createElement('button');
+      cancel.className = 'btn-secondary';
+      cancel.textContent = 'Cancel';
+      cancel.onclick = () => { modal.classList.remove('show'); resolve(false); };
+      const ok = document.createElement('button');
+      ok.className = 'btn-primary';
+      ok.textContent = 'Confirm';
+      ok.onclick = () => { modal.classList.remove('show'); resolve(true); };
+      btns.appendChild(cancel);
+      btns.appendChild(ok);
+      modal.classList.add('show');
+    });
+  }
+
   // ====== DEVICE DETECTION ======
   const userAgent = navigator.userAgent || navigator.vendor || window.opera;
   const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
@@ -1298,7 +1379,7 @@
         errorMsg += 'Please allow camera permissions and try again.';
       }
       
-      alert(errorMsg);
+      showAlert(errorMsg);
     }
   }
 
@@ -1367,15 +1448,21 @@
         console.log('Using video/webm for Android');
       }
     } else {
-      if (MediaRecorder.isTypeSupported('video/mp4;codecs=h264,aac')) {
+      if (MediaRecorder.isTypeSupported('video/mp4;codecs=avc1,mp4a.40.2')) {
+        options = { mimeType: 'video/mp4;codecs=avc1,mp4a.40.2' };
+        console.log('Using video/mp4 with avc1+AAC for Desktop');
+      } else if (MediaRecorder.isTypeSupported('video/mp4;codecs=h264,aac')) {
         options = { mimeType: 'video/mp4;codecs=h264,aac' };
-        console.log('Using video/mp4 with h264,aac for Desktop');
+        console.log('Using video/mp4 with h264+aac for Desktop');
       } else if (MediaRecorder.isTypeSupported('video/mp4')) {
         options = { mimeType: 'video/mp4' };
         console.log('Using video/mp4 for Desktop');
-      } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) {
-        options = { mimeType: 'video/webm;codecs=vp9' };
-        console.log('Using video/webm fallback for Desktop');
+      } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')) {
+        options = { mimeType: 'video/webm;codecs=vp8,opus' };
+        console.log('Using video/webm with vp8+opus for Desktop');
+      } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')) {
+        options = { mimeType: 'video/webm;codecs=vp9,opus' };
+        console.log('Using video/webm with vp9+opus for Desktop');
       } else if (MediaRecorder.isTypeSupported('video/webm')) {
         options = { mimeType: 'video/webm' };
         console.log('Using video/webm basic fallback for Desktop');
@@ -1478,7 +1565,7 @@
       document.getElementById('screen-review').classList.remove('active');
       setTimeout(() => goTo('screen-saved'), 800);
     } else {
-      alert('Error saving message. Please try again.');
+      await showAlert('Error saving message. Please try again.');
     }
   }
 
@@ -1769,7 +1856,7 @@
     const allMessages = await getAllMessages();
     const selectedMessages = allMessages.filter(msg => selectedVideoIds.has(msg.id));
     
-    if (!confirm(`Download ${selectedMessages.length} video(s)?`)) return;
+    if (!await showConfirm(`Download ${selectedMessages.length} video(s)?`)) return;
     
     console.log(`📥 Starting download of ${selectedMessages.length} videos...`);
     
@@ -1780,17 +1867,12 @@
       a.href = url;
       const ext = msg.mimeType.includes('mp4') ? 'mp4' : 'webm';
       
-      // Format timestamp from ISO string (e.g., "2026-06-22T15:30:45.123Z")
       const timestamp = new Date(msg.timestamp);
-      const timeStr = timestamp.toLocaleTimeString('en-MY', { 
-        hour: '2-digit', 
-        minute: '2-digit', 
-        second: '2-digit',
-        hour12: false 
-      }).replace(/:/g, '-');
-      
-      a.download = `${i + 1}_${msg.name.replace(/ /g, '_')}_${msg.dateStr.replace(/ /g, '_')}_${timeStr}.${ext}`;
-      
+      const dateStr = timestamp.toISOString().slice(0, 10);
+      const timeStr = timestamp.toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit', hour12: false }).replace(':', '-');
+      const guestIndex = msg.name.split('_')[1];
+      a.download = `guest_${guestIndex}_${dateStr}_${timeStr}.${ext}`;
+
       // Stagger downloads to avoid browser blocking
       setTimeout(() => {
         document.body.appendChild(a);
@@ -1801,7 +1883,7 @@
       }, i * 500);
     }
     
-    alert(`Started downloading ${selectedMessages.length} video(s).\nCheck your Downloads folder.`);
+    showAlert(`Started downloading ${selectedMessages.length} video(s).\nCheck your Downloads folder.`);
   }
 
   async function deleteSelected() {
@@ -1812,7 +1894,7 @@
     
     const confirmMsg = `Delete ${selectedMessages.length} video(s)?\n\nThis cannot be undone!\n\nDeleting:\n${selectedMessages.slice(0, 5).map(m => '- ' + m.name).join('\n')}${selectedMessages.length > 5 ? '\n... and ' + (selectedMessages.length - 5) + ' more' : ''}`;
     
-    if (!confirm(confirmMsg)) return;
+    if (!await showConfirm(confirmMsg)) return;
     
     console.log(`🗑️ Deleting ${selectedMessages.length} videos...`);
     
@@ -1830,7 +1912,7 @@
           if (deleted === selectedMessages.length) {
             selectedVideoIds.clear();
             renderGallery(currentPage);
-            alert(`Successfully deleted ${deleted} video(s)`);
+            showAlert(`Successfully deleted ${deleted} video(s)`);
             resolve(true);
           }
         };
@@ -1927,7 +2009,7 @@
         console.log('Entered fullscreen mode');
       }).catch((err) => {
         console.error('Error entering fullscreen:', err);
-        alert('Fullscreen not supported or blocked by browser');
+        showAlert('Fullscreen not supported or blocked by browser');
       });
     } else {
       // Exit fullscreen
@@ -2017,7 +2099,7 @@
       })));
     },
     clearDatabase: async () => {
-      if (!confirm('Clear ALL messages?')) return;
+      if (!await showConfirm('Clear ALL messages?')) return;
       const transaction = db.transaction([STORE_NAME], 'readwrite');
       const store = transaction.objectStore(STORE_NAME);
       const request = store.clear();
@@ -2027,7 +2109,7 @@
       };
     },
     resetDatabase: async () => {
-      if (!confirm('⚠️ RESET DATABASE? This will delete and recreate it.')) return;
+      if (!await showConfirm('⚠️ RESET DATABASE? This will delete and recreate it.')) return;
       
       console.log('🔄 Deleting database...');
       if (db) {
@@ -2059,16 +2141,11 @@
         a.href = url;
         const ext = msg.mimeType.includes('mp4') ? 'mp4' : 'webm';
         
-        // Format timestamp
         const timestamp = new Date(msg.timestamp);
-        const timeStr = timestamp.toLocaleTimeString('en-MY', { 
-          hour: '2-digit', 
-          minute: '2-digit', 
-          second: '2-digit',
-          hour12: false 
-        }).replace(/:/g, '-');
-        
-        a.download = `${i + 1}_${msg.name.replace(/ /g, '_')}_${msg.dateStr.replace(/ /g, '_')}_${timeStr}.${ext}`;
+        const dateStr = timestamp.toISOString().slice(0, 10);
+        const timeStr = timestamp.toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit', hour12: false }).replace(':', '-');
+        const guestIndex = msg.name.split('_')[1];
+        a.download = `guest_${guestIndex}_${dateStr}_${timeStr}.${ext}`;
         
         // Stagger downloads
         setTimeout(() => {
