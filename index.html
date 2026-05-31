@@ -517,9 +517,9 @@
 
   .gallery-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 12px;
-    width: 100%; max-width: 500px;
+    width: 100%; max-width: 100%;
     padding-bottom: 100px;
   }
   .gallery-item {
@@ -1057,6 +1057,21 @@
     });
   }
 
+  // ====== DATE FORMATTING ======
+  function formatDate(date) {
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const dd = String(date.getDate()).padStart(2, '0');
+    const mmm = months[date.getMonth()];
+    const yyyy = date.getFullYear();
+    return `${dd}-${mmm}-${yyyy}`;
+  }
+
+  function formatTime(date) {
+    return date.toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit', hour12: true })
+      .replace(':', '-')
+      .replace(' ', '');
+  }
+
   // ====== DEVICE DETECTION ======
   const userAgent = navigator.userAgent || navigator.vendor || window.opera;
   const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
@@ -1077,7 +1092,7 @@
   
   // ====== PAGINATION SETUP ======
   let currentPage = 1;
-  const VIDEOS_PER_PAGE = 2; // Adjust based on device performance
+  const VIDEOS_PER_PAGE = 4;
   let selectedVideoIds = new Set(); // Track selected video IDs
 
   async function initDB() {
@@ -1298,8 +1313,9 @@
     const allMessages = await getAllMessages();
     const index = allMessages.length + 1;
     const now = new Date();
-    const dateTime = now.toISOString().replace(/[:.]/g, '-').slice(0, 19);
-    guestName = `guest_${index}_${dateTime}`;
+    const dateStr = formatDate(now);
+    const timeStr = formatTime(now);
+    guestName = `guest_${index}_${dateStr}_${timeStr}`;
     document.getElementById('guest-greeting').textContent = `Leave your message below`;
     goTo('screen-record');
     initCamera();
@@ -1683,7 +1699,10 @@
       
       const label = document.createElement('div');
       label.className = 'guest-label';
-      label.innerHTML = msg.name + '<br><span style="font-size:10px;opacity:0.7">' + msg.dateStr + '</span>';
+      const recordedAt = new Date(msg.timestamp);
+      const displayTime = recordedAt.toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit', hour12: true });
+      const guestNo = msg.name.split('_')[1];
+      label.innerHTML = 'Guest ' + guestNo + '<br><span style="font-size:10px;opacity:0.7">' + msg.dateStr + ', ' + displayTime + '</span>';
       
       div.appendChild(checkbox);
       div.appendChild(video);
@@ -1868,8 +1887,8 @@
       const ext = msg.mimeType.includes('mp4') ? 'mp4' : 'webm';
       
       const timestamp = new Date(msg.timestamp);
-      const dateStr = timestamp.toISOString().slice(0, 10);
-      const timeStr = timestamp.toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit', hour12: false }).replace(':', '-');
+      const dateStr = formatDate(timestamp);
+      const timeStr = formatTime(timestamp);
       const guestIndex = msg.name.split('_')[1];
       a.download = `guest_${guestIndex}_${dateStr}_${timeStr}.${ext}`;
 
@@ -2142,8 +2161,8 @@
         const ext = msg.mimeType.includes('mp4') ? 'mp4' : 'webm';
         
         const timestamp = new Date(msg.timestamp);
-        const dateStr = timestamp.toISOString().slice(0, 10);
-        const timeStr = timestamp.toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit', hour12: false }).replace(':', '-');
+        const dateStr = formatDate(timestamp);
+        const timeStr = formatTime(timestamp);
         const guestIndex = msg.name.split('_')[1];
         a.download = `guest_${guestIndex}_${dateStr}_${timeStr}.${ext}`;
         
