@@ -1411,7 +1411,10 @@
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
-          autoGainControl: true
+          // Disabled: adaptive AGC ducks the mic level under noisy/multi-voice
+          // input, fighting our fixed RECORDING_AUDIO_GAIN boost and causing
+          // volume to drop inconsistently. A flat capture + fixed gain is more predictable.
+          autoGainControl: false
         }
       };
       
