@@ -1358,6 +1358,8 @@
   let isRecording = false;
   let guestName = '';
   let canvasStream = null; // For un-mirrored recording
+  let recordingAudioContext = null; // For boosting mic gain during recording
+  const RECORDING_AUDIO_GAIN = 2.0; // Mic audio is much quieter than mastered music; boost to compensate
 
   function goTo(screenId) {
     if (!musicReady && !musicMuted) initMusic();
@@ -1500,10 +1502,18 @@
     // Get stream from canvas (this will be un-mirrored)
     canvasStream = canvas.captureStream(30); // 30 FPS
     
-    // Add audio from original stream
+    // Add audio from original stream, boosted since raw mic capture
+    // is much quieter than the mastered background music track
     const audioTracks = stream.getAudioTracks();
     if (audioTracks.length > 0) {
-      canvasStream.addTrack(audioTracks[0]);
+      recordingAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const micSource = recordingAudioContext.createMediaStreamSource(new MediaStream([audioTracks[0]]));
+      const gainNode = recordingAudioContext.createGain();
+      gainNode.gain.value = RECORDING_AUDIO_GAIN;
+      const destination = recordingAudioContext.createMediaStreamDestination();
+      micSource.connect(gainNode);
+      gainNode.connect(destination);
+      canvasStream.addTrack(destination.stream.getAudioTracks()[0]);
     }
 
     // Platform-specific codec selection
@@ -1558,6 +1568,10 @@
       if (canvasStream) {
         canvasStream.getVideoTracks().forEach(t => t.stop());
         canvasStream = null;
+      }
+      if (recordingAudioContext) {
+        recordingAudioContext.close();
+        recordingAudioContext = null;
       }
       handleRecordingStop();
     };
