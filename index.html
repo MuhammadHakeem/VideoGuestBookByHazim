@@ -1410,10 +1410,12 @@
         },
         audio: {
           echoCancellation: true,
-          noiseSuppression: true,
-          // Disabled: adaptive AGC ducks the mic level under noisy/multi-voice
-          // input, fighting our fixed RECORDING_AUDIO_GAIN boost and causing
-          // volume to drop inconsistently. A flat capture + fixed gain is more predictable.
+          // Disabled along with autoGainControl below: Safari's adaptive
+          // noiseSuppression/AGC duck the mic level when they detect a second
+          // voice or more complex input, fighting our fixed RECORDING_AUDIO_GAIN
+          // boost and causing volume to drop inconsistently. A flat capture +
+          // fixed gain is more predictable than fighting these adaptive filters.
+          noiseSuppression: false,
           autoGainControl: false
         }
       };
